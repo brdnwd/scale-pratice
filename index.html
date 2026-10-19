@@ -1,0 +1,151 @@
+
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Scales Test</title>
+        <link rel="stylesheet" href="./style.css">
+        <link rel="manifest" href="./manifest.json">
+    </head>
+    <body>
+        <main>
+            <h1>Scales Test</h1>
+            <p>Choose a key, scale, and range. Build the scale one note at a time. Your answers are graded automatically when you finish.</p>
+
+            <section class="panel" id="setup">
+                <div class="settings">
+                    <label>
+                        Key
+                        <select id="keySelect"></select>
+                    </label>
+
+                    <label>
+                        Scale type
+                        <select id="scaleSelect"></select>
+                    </label>
+
+                    <label>
+                        Range
+                        <select id="rangeSelect"></select>
+                    </label>
+
+                     <label>
+                        Direction
+                        <select id="directionSelect">
+                            <option value="ascending">Ascending only</option>
+                            <option value="both">Ascending and descending</option>
+                        </select>
+                    </label>
+                </div>
+                
+
+                <div class="actions">
+                    <button class="primary text-opposed-color" id="startButton">Start Test</button>
+                    <button class="red wavy randomButton">Choose a Random Scale</button>
+                </div>
+                <p id="error"></p>
+            </section>
+
+            <section class="panel hidden" id="test">
+                <div id="testTitle"></div>
+                
+                <div class="staff-wrapper" id="staffWrapper">
+                    <svg id="scaleStaff"
+                        xmlns="http://www.w3.org/2000/svg"
+                        viewBox="0 0 680 145"
+                        role="img"
+                        aria-label="Musical staff showing the notes selected so far">
+                        <g class="staff-lines">
+                            <line x1="40" y1="45" x2="660" y2="45"/>
+                            <line x1="40" y1="57" x2="660" y2="57"/>
+                            <line x1="40" y1="69" x2="660" y2="69"/>
+                            <line x1="40" y1="81" x2="660" y2="81"/>
+                            <line x1="40" y1="93" x2="660" y2="93"/>
+                        </g>
+                        <text x="8" y="88" class="treble-clef">𝄞</text>
+                        <g id="staffLedgerLines"></g>
+                        <g id="staffNotes"></g>
+                    </svg>
+                </div>
+
+                <div class="progress">
+                    <div class="progress-bar" id="progressBar"></div>
+                </div>
+
+                <div class="note-display">
+                    <div class="number" id="noteNumber"></div>
+                    <div class="letter" id="noteLetter"></div>
+                    <div class="instruction" id="noteInstruction">Choose the correct note.</div>
+                </div>
+
+                <div class="note-grid" id="noteChoices"></div>
+
+                <div>
+                    <p>Your scale so far</p>
+                    <div class="selected-notes" id="selectedNotes"></div>
+                </div>
+
+                <div class="actions">
+                    <button class="secondary" id="undoButton">Undo Last Note</button>
+                    <button class="red wavy nextButton">Go Back</button>
+                </div>
+            </section>
+
+            <section class="panel hidden" id="results">
+                <h2 id="resultTitle">Results</h2>
+                <p id="score"></p>
+                <div id="resultDetails"></div>
+
+                <div class="actions">
+                    <button class="secondary" id="retryButton">Try Again</button>
+                    <button class="primary text-opposed-color" id="nextscaleButton">Next Scale</button>
+                    <button class="red wavy nextButton">Go Back</button>
+                </div>
+            </section>
+            
+            <footer class="app-footer">
+                <span>&copy; <span id="copyrightYear"></span> Braden Wood</span>
+                <button type="button" id="settingsButton" class="text-button">⚙ Settings</button>
+            </footer>
+
+            <div class="settings-overlay hidden" id="settingsOverlay" aria-hidden="true">
+                <section class="settings-modal" role="dialog" aria-modal="true" aria-labelledby="settingsTitle">
+                    <header class="settings-header">
+                        <div>
+                            <h2 id="settingsTitle">Settings</h2>
+                            <p class="muted">Customize your scale practice.</p>
+                        </div>
+                        <button type="button" class="settings-close" id="closeSettingsButton" aria-label="Close settings">&times;</button>
+                    </header>
+
+                    <div class="settings-content">
+                        <section class="settings-section">
+                            <h3>Scales</h3>
+                            <p class="muted">Uncheck a key, range, or scale type to hide it from practice.</p>
+                            <div id="scaleSettingsTree" class="scale-settings-tree"></div>
+                        </section>
+
+                        <section class="settings-section settings-theme-section">
+                            <h3>Appearance</h3>
+                            <label class="theme-setting" for="themeSelect">
+                                <select id="themeSelect">
+                                    <option value="dark">Dark</option>
+                                    <option value="light">Light</option>
+                                </select>
+                            </label>
+                        </section>
+                    </div>
+
+                    <footer class="settings-footer">
+                        <button type="button" class="secondary" id="resetSettingsButton">Reset Settings</button>
+                        <button type="button" class="primary text-opposed-color" id="doneSettingsButton">Done</button>
+                    </footer>
+                </section>
+            </div>
+
+        </main>
+
+        <script src="./script.js"></script>
+    </body>
+</html>

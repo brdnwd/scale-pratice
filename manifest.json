@@ -1,0 +1,26 @@
+
+{
+    "id": "./",
+    "name": "Scale Practice",
+    "short_name": "Scales",
+    "description": "Practice musical scales and test your knowledge of notes.",
+    "start_url": "./",
+    "scope": "./",
+    "display": "standalone",
+    "display_override": [
+        "standalone",
+        "minimal-ui",
+        "wide"
+    ],
+    "orientation": "any",
+    "background_color": "#252525",
+    "theme_color": "#245b3a",
+    "icons": [
+        {
+            "src": "./icons/icon-512.jpg",
+            "sizes": "512x512",
+            "type": "image/png",
+            "purpose": "any"
+        }
+    ]
+}

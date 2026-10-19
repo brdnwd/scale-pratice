@@ -1,0 +1,168 @@
+{
+    "scales": {
+        "c": {
+            "staff-data": {
+                "keys": []
+            },
+            "scale": {
+                "types": ["2-octave"],
+                "major": [
+                        "c",
+                        "d",
+                        "e",
+                        "f",
+                        "g",
+                        "a",
+                        "b",
+                        "c",
+                        "d",
+                        "e",
+                        "f",
+                        "g",
+                        "a",
+                        "b",
+                        "c"
+                ],
+                "natural-minor": [
+                        "c",
+                        "d",
+                        "e-flat",
+                        "f",
+                        "g",
+                        "a-flat",
+                        "b-flat",
+                        "c",
+                        "d",
+                        "e-flat",
+                        "f",
+                        "g",
+                        "a-flat",
+                        "b-flat",
+                        "c"
+                ],
+                "harmonic-minor": [
+                        "c",
+                        "d",
+                        "e-flat",
+                        "f",
+                        "g",
+                        "a-flat",
+                        "b",
+                        "c",
+                        "d",
+                        "e-flat",
+                        "f",
+                        "g",
+                        "a-flat",
+                        "b",
+                        "c"
+                ],
+                "melodic-minor": [
+                        "c",
+                        "d",
+                        "e-flat",
+                        "f",
+                        "g",
+                        "a",
+                        "b",
+                        "c",
+                        "d",
+                        "e",
+                        "f",
+                        "g",
+                        "a",
+                        "b",
+                        "c"
+                ]
+            }
+        },
+        "c-sharp": {
+            "staff-data": {
+                "keys": [
+                    "f-sharp",
+                    "c-sharp",
+                    "g-sharp",
+                    "d-sharp",
+                    "a-sharp",
+                    "e-sharp",
+                    "b-sharp"
+                ]
+            },
+            "scale": {
+                "types": ["2-octave","extended-range"],
+                "major": [
+                    "c-sharp",
+                    "d-sharp",
+                    "e-sharp",
+                    "f-sharp",
+                    "g-sharp",
+                    "a-sharp",
+                    "b-sharp",
+                    "c-sharp",
+                    "d-sharp",
+                    "e-sharp",
+                    "f-sharp",
+                    "g-sharp",
+                    "a-sharp",
+                    "b-sharp",
+                    "c-sharp"
+                ],
+                "natural-minor": [
+                    "c-sharp",
+                    "d-sharp",
+                    "e-natural",
+                    "f-sharp",
+                    "g-sharp",
+                    "a-natural",
+                    "b-natural",
+                    "c-sharp",
+                    "d-sharp",
+                    "e-natural",
+                    "f-sharp",
+                    "g-sharp",
+                    "a-natural",
+                    "b-natural",
+                    "c-sharp"
+                ],
+                "harmonic-minor": [
+                    "c-sharp",
+                    "d-sharp",
+                    "e-natural",
+                    "f-sharp",
+                    "g-sharp",
+                    "a-natural",
+                    "b-sharp",
+                    "c-sharp",
+                    "d-sharp",
+                    "e-natural",
+                    "f-sharp",
+                    "g-sharp",
+                    "a-natural",
+                    "b-sharp",
+                    "c-sharp"
+                ],
+                "melodic-minor": [
+                    "c-sharp",
+                    "d-sharp",
+                    "e-natural",
+                    "f-sharp",
+                    "g-sharp",
+                    "a-sharp",
+                    "b-sharp",
+                    "c-sharp",
+                    "d-sharp",
+                    "e-natural",
+                    "f-sharp",
+                    "g-sharp",
+                    "a-sharp",
+                    "b-sharp",
+                    "c-sharp"
+                ]
+            }
+        }
+
+    }
+
+
+
+}
