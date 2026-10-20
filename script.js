@@ -20,10 +20,16 @@
     const settingsOverlay = $("settingsOverlay");
     const scaleSettingsTree = $("scaleSettingsTree");
     const themeSelect = $("themeSelect");
+    const fingeringToggle = $("fingeringToggle");
+    const keySignatureToggle = $("keySignatureToggle");
+    const scaleTypeFilters = $("scaleTypeFilters");
+    const scaleRangeFilters = $("scaleRangeFilters");
 
     // Storage keys
     const HIDDEN_SCALES_KEY = "scalePracticeHiddenScales";
     const THEME_KEY = "scalePracticeTheme";
+    const FINGERING_KEY = "scalePracticeShowFingerings";
+    const KEY_SIGNATURE_KEY = "scalePracticeShowKeySignature";
 
     // Test state
     let data;
@@ -35,6 +41,10 @@
     let finished = false;
     let hiddenScales = new Set();
     let customDropdowns = null;
+    let savedDirection = null;
+    let showFingerings = true;
+    let expectedMidis = [];
+    let showKeySignature = true;
 
     // Note names and notation
     const noteNames = {
@@ -49,6 +59,24 @@
 
     const naturalNotes = ["c", "d", "e", "f", "g", "a", "b"];
     const accidentalNotes = ["natural", "sharp", "flat"];
+    const accidentalSymbols = { sharp: "♯", flat: "♭", natural: "♮" };
+
+    // Fields in each key's data that are not scale types.
+    const NON_SCALE_FIELDS = ["key-signature", "types"];
+
+    // Vertical text offset per accidental. Flats need to sit lower so the
+    // loop of the ♭ lines up with the notehead.
+    const ACCIDENTAL_Y_OFFSET = { sharp: 6, natural: 6, flat: 4 };
+
+    // The major scale holds the base letters for every scale in the key.
+    // The minor scales only list the notes that change from the key signature.
+    const BASE_SCALE_TYPE = "major";
+
+    // Vertical staff positions (treble clef) for key signature accidentals.
+    const SIGNATURE_Y = {
+        sharp: { f: 45, c: 63, g: 39, d: 57, a: 75, e: 51, b: 69 },
+        flat: { b: 69, e: 51, a: 75, d: 57, g: 81, c: 63, f: 87 }
+    };
 
     function displayNote(note) {
         return noteNames[note] || note.split("-")
@@ -62,6 +90,15 @@
             .join(" ");
     }
 
+    // A plain letter and a natural of the same letter are the same pitch.
+    function notePitch(note) {
+        return note.endsWith("-natural") ? note.slice(0, -"-natural".length) : note;
+    }
+
+    function notesMatch(answer, correct) {
+        return Boolean(answer) && notePitch(answer) === notePitch(correct);
+    }
+
     // Settings and saved preferences
     function keySettingId(key) {
         return "key:" + key;
@@ -71,22 +108,32 @@
         return "range:" + key + ":" + range;
     }
 
+    function typeSettingId(type) {
+        return "type:" + type;
+    }
+
+    function globalRangeSettingId(range) {
+        return "allranges:" + range;
+    }
+
     function scaleSettingId(key, range, type) {
         return "scale:" + key + ":" + range + ":" + type;
     }
 
     function getScaleTypes(key) {
-        const scaleData = data.scales[key].scale;
+        const keyData = data.scales[key];
 
-        return Object.keys(scaleData).filter(type =>
-            type !== "types" && Array.isArray(scaleData[type])
+        return Object.keys(keyData).filter(type =>
+            !NON_SCALE_FIELDS.includes(type) && Array.isArray(keyData[type])
         );
     }
 
     function isScaleVisible(key, range, type) {
         return !hiddenScales.has(keySettingId(key)) &&
             !hiddenScales.has(rangeSettingId(key, range)) &&
-            !hiddenScales.has(scaleSettingId(key, range, type));
+            !hiddenScales.has(scaleSettingId(key, range, type)) &&
+            !hiddenScales.has(typeSettingId(type)) &&
+            !hiddenScales.has(globalRangeSettingId(range));
     }
 
     function getVisibleScaleTypes(key, range) {
@@ -96,7 +143,7 @@
     }
 
     function getVisibleRanges(key) {
-        const ranges = data.scales[key].scale.types || [];
+        const ranges = data.scales[key].types || [];
 
         return ranges.filter(range =>
             getVisibleScaleTypes(key, range).length > 0
@@ -135,6 +182,22 @@
 
         themeSelect.value = savedTheme;
         applyTheme(savedTheme);
+
+        try {
+            showFingerings = localStorage.getItem(FINGERING_KEY) !== "false";
+        } catch (error) {
+            showFingerings = true;
+        }
+
+        fingeringToggle.checked = showFingerings;
+
+        try {
+            showKeySignature = localStorage.getItem(KEY_SIGNATURE_KEY) !== "false";
+        } catch (error) {
+            showKeySignature = true;
+        }
+
+        keySignatureToggle.checked = showKeySignature;
     }
 
     function saveHiddenScales() {
@@ -181,6 +244,27 @@
 
         themeSelect.value = "dark";
         applyTheme("dark");
+
+        showFingerings = true;
+        fingeringToggle.checked = true;
+
+        try {
+            localStorage.removeItem(FINGERING_KEY);
+        } catch (error) {
+            console.warn("Could not reset fingering setting:", error);
+        }
+
+        updateFingerings();
+
+        showKeySignature = true;
+        keySignatureToggle.checked = true;
+
+        try {
+            localStorage.removeItem(KEY_SIGNATURE_KEY);
+        } catch (error) {
+            console.warn("Could not reset key signature setting:", error);
+        }
+
         renderScaleSettings();
         refreshScaleSelectors();
 
@@ -630,13 +714,71 @@
         return node;
     }
 
+    function getAllScaleTypes() {
+        const types = [];
+
+        Object.keys(data.scales).forEach(key => {
+            getScaleTypes(key).forEach(type => {
+                if (!types.includes(type)) types.push(type);
+            });
+        });
+
+        return types;
+    }
+
+    function getAllRanges() {
+        const ranges = [];
+
+        Object.keys(data.scales).forEach(key => {
+            (data.scales[key].types || []).forEach(range => {
+                if (!ranges.includes(range)) ranges.push(range);
+            });
+        });
+
+        return ranges;
+    }
+
+    function renderFilterGroup(container, values, idFor) {
+        container.replaceChildren();
+
+        values.forEach(value => {
+            const label = document.createElement("label");
+            label.className = "scale-type-filter";
+
+            const checkbox = document.createElement("input");
+            checkbox.type = "checkbox";
+            checkbox.checked = !hiddenScales.has(idFor(value));
+
+            checkbox.addEventListener("change", () => {
+                if (checkbox.checked) hiddenScales.delete(idFor(value));
+                else hiddenScales.add(idFor(value));
+
+                saveHiddenScales();
+                updateSettingsCheckboxes();
+                refreshScaleSelectors();
+            });
+
+            const name = document.createElement("span");
+            name.textContent = displayName(value);
+
+            label.append(checkbox, name);
+            container.append(label);
+        });
+    }
+
+    function renderGlobalFilters() {
+        renderFilterGroup(scaleTypeFilters, getAllScaleTypes(), typeSettingId);
+        renderFilterGroup(scaleRangeFilters, getAllRanges(), globalRangeSettingId);
+    }
+
     function renderScaleSettings() {
         scaleSettingsTree.replaceChildren();
 
+        renderGlobalFilters();
+
         Object.keys(data.scales).forEach(key => {
-            const scaleData = data.scales[key].scale;
             const types = getScaleTypes(key);
-            const ranges = scaleData.types || [];
+            const ranges = data.scales[key].types || [];
 
             const rangeNodes = ranges.map(range => {
                 const typeNodes = types.map(type =>
@@ -671,14 +813,17 @@
 
         checkboxes.forEach(checkbox => {
             const id = checkbox.dataset.settingId;
+            const parts = id.split(":");
 
             if (id.startsWith("scale:")) {
-                const parts = id.split(":");
-                checkbox.checked = isScaleVisible(
-                    parts[1],
-                    parts[2],
-                    parts.slice(3).join(":")
-                );
+                const type = parts.slice(3).join(":");
+
+                checkbox.checked = isScaleVisible(parts[1], parts[2], type);
+                checkbox.disabled =
+                    hiddenScales.has(typeSettingId(type)) ||
+                    hiddenScales.has(globalRangeSettingId(parts[2]));
+            } else if (id.startsWith("range:")) {
+                checkbox.disabled = hiddenScales.has(globalRangeSettingId(parts[2]));
             }
         });
 
@@ -686,7 +831,7 @@
             const node = checkbox.closest(".scale-settings-node");
             const descendants = [
                 ...node.querySelectorAll(
-                    ".scale-settings-children input[type='checkbox']"
+                    ":scope > .scale-settings-children input[type='checkbox']"
                 )
             ];
 
@@ -736,24 +881,69 @@
         settingsButton.focus();
     }
 
+    // Key signatures
+    function getKeySignature(key) {
+        return data.scales[key]?.["key-signature"] || [];
+    }
+
+    // Maps each letter in the key signature to its accidental, e.g. { f: "sharp" }.
+    function getKeySignatureMap(key) {
+        const map = {};
+
+        getKeySignature(key).forEach(note => {
+            const [letter, accidental] = note.split("-");
+            if (letter && accidental) map[letter] = accidental;
+        });
+
+        return map;
+    }
+
     // Staff drawing and scrolling
     function drawStaff() {
         const svg = $("scaleStaff");
         const staffLines = svg.querySelector(".staff-lines");
         const notesGroup = $("staffNotes");
         const ledgerGroup = $("staffLedgerLines");
+        const signatureGroup = $("staffKeySignature");
 
         notesGroup.replaceChildren();
         ledgerGroup.replaceChildren();
+        signatureGroup.replaceChildren();
 
         const letterIndex = { c: 0, d: 1, e: 2, f: 3, g: 4, a: 5, b: 6 };
         const NS = "http://www.w3.org/2000/svg";
         const noteSpacing = 34;
-        const startX = 100;
         const stepY = 6;
         const bottomY = 93;
 
-        let octave = 4;
+        // Key signature, drawn right after the clef.
+        const signature = showKeySignature ? getKeySignature(currentKey) : [];
+        const signatureMap = showKeySignature ? getKeySignatureMap(currentKey) : {};
+        const signatureStartX = 52;
+        const signatureSpacing = 11;
+
+        signature.forEach((note, index) => {
+            const [letter, accidental] = note.split("-");
+            const y = SIGNATURE_Y[accidental]?.[letter];
+
+            if (y === undefined) return;
+
+            const text = document.createElementNS(NS, "text");
+            text.setAttribute("x", signatureStartX + index * signatureSpacing);
+            text.setAttribute("y", y + ACCIDENTAL_Y_OFFSET[accidental]);
+            text.setAttribute("class", "staff-accidental");
+            text.textContent = accidentalSymbols[accidental];
+            signatureGroup.append(text);
+        });
+
+        const signatureEndX = signature.length
+            ? signatureStartX + (signature.length - 1) * signatureSpacing + 8
+            : 0;
+
+        // Leave room for the key signature before the first note.
+        const startX = Math.max(100, signatureEndX + 34);
+
+        let octave = Number(data.scales[currentKey]?.["octave-level"] || 4);
         let previousLetter = null;
 
         const positions = [];
@@ -818,16 +1008,23 @@
                 }
             }
 
-            // Accidentals
-            const accidental = note.includes("-") ? note.split("-")[1] : "";
-            const accidentalSymbols = { sharp: "♯", flat: "♭", natural: "♮" };
+            // Accidentals: only shown when the note differs from the key signature.
+            const [letter, accidental = ""] = note.split("-");
+            const effectiveAccidental = accidental || "natural";
+            const signatureAccidental = signatureMap[letter] || "natural";
 
-            if (accidentalSymbols[accidental]) {
+            // With the key signature on, only show notes that differ from it.
+            // With it off, show every accidental the note carries.
+            const needsAccidental = showKeySignature
+                ? effectiveAccidental !== signatureAccidental
+                : Boolean(accidental);
+
+            if (needsAccidental && accidentalSymbols[effectiveAccidental]) {
                 const accidentalText = document.createElementNS(NS, "text");
                 accidentalText.setAttribute("x", x - 12);
-                accidentalText.setAttribute("y", y + 6);
+                accidentalText.setAttribute("y", y + ACCIDENTAL_Y_OFFSET[effectiveAccidental]);
                 accidentalText.setAttribute("class", "staff-accidental");
-                accidentalText.textContent = accidentalSymbols[accidental];
+                accidentalText.textContent = accidentalSymbols[effectiveAccidental];
                 notesGroup.append(accidentalText);
             }
 
@@ -918,6 +1115,26 @@
         }
     }
 
+    // Melodic minor always goes up and down, so lock the direction dropdown.
+    function syncDirectionLock() {
+        const isMelodic = scaleSelect.value === "melodic-minor";
+
+        if (isMelodic) {
+            if (!directionSelect.disabled) savedDirection = directionSelect.value;
+            directionSelect.value = "both";
+            directionSelect.disabled = true;
+        } else {
+            directionSelect.disabled = false;
+
+            if (savedDirection) {
+                directionSelect.value = savedDirection;
+                savedDirection = null;
+            }
+        }
+
+        if (customDropdowns) customDropdowns.refresh();
+    }
+
     function updateRangeOptions() {
         const key = data.scales[keySelect.value];
 
@@ -952,6 +1169,8 @@
             option.textContent = displayName(type);
             scaleSelect.append(option);
         });
+
+        syncDirectionLock();
     }
 
     function refreshScaleSelectors() {
@@ -976,6 +1195,8 @@
         if ([...scaleSelect.options].some(option => option.value === previousType)) {
             scaleSelect.value = previousType;
         }
+
+        syncDirectionLock();
 
         $("startButton").disabled =
             !keySelect.value || !rangeSelect.value || !scaleSelect.value;
@@ -1023,49 +1244,70 @@
         updateScaleOptions();
         scaleSelect.value = choice.type;
 
+        syncDirectionLock();
+
         if (customDropdowns) customDropdowns.refresh();
     }
 
-    function getScaleSequence(key, type, range, direction) {
-        const scaleData = data.scales[key].scale;
+    // Builds the full two-octave scale for a key and scale type, with every
+    // note resolved to its real name (key signature plus any scale changes).
+    function buildScale(key, type) {
+        const keyData = data.scales[key];
+        const baseLetters = keyData[BASE_SCALE_TYPE];
 
-        if (!Array.isArray(scaleData[type])) {
+        if (!Array.isArray(baseLetters)) {
+            throw new Error("Missing base scale array: " + BASE_SCALE_TYPE);
+        }
+
+        if (!Array.isArray(keyData[type])) {
             throw new Error("Missing scale array: " + type);
         }
 
-        let ascending = [...scaleData[type]];
+        const signatureMap = getKeySignatureMap(key);
+        const changes = {};
 
+        if (type !== BASE_SCALE_TYPE) {
+            keyData[type].forEach(note => {
+                const [letter, accidental] = note.split("-");
+                if (letter && accidental) changes[letter] = accidental;
+            });
+        }
+
+        return baseLetters.map(letter => {
+            const accidental = changes[letter] || signatureMap[letter];
+            return accidental ? letter + "-" + accidental : letter;
+        });
+    }
+
+    // Applies the range: 1-octave is the first 8 notes, 2-octave is everything,
+    // and extended-range is the 2-octave scale without its last 3 notes.
+    function applyRange(notes, range) {
+        if (range === "1-octave") return notes.slice(0, 8);
         if (range === "extended-range") {
-            ascending = ascending.slice(0, Math.max(0, ascending.length - 3));
+            return notes.slice(0, Math.max(0, notes.length - 3));
         }
+        return [...notes];
+    }
 
-        if (direction === "ascending") return ascending;
+    function getScaleSequence(key, type, range, direction) {
+        const ascending = applyRange(buildScale(key, type), range);
 
-        let descending;
+        // Melodic minor always goes up and comes back down.
+        const includeDescending =
+            direction === "both" || type === "melodic-minor";
 
-        if (type === "melodic-minor") {
-            if (!Array.isArray(scaleData["natural-minor"])) {
-                throw new Error("Melodic minor requires a natural-minor array.");
-            }
+        if (!includeDescending) return ascending;
 
-            descending = [...scaleData["natural-minor"]];
+        // Melodic minor comes back down as natural minor.
+        const descendingSource = type === "melodic-minor"
+            ? applyRange(buildScale(key, "natural-minor"), range)
+            : ascending;
 
-            if (range === "extended-range") {
-                descending = descending.slice(
-                    0,
-                    Math.max(0, descending.length - 3)
-                );
-            }
-        } else {
-            descending = [...ascending];
-        }
-
-        descending = descending.slice(0, -1).reverse();
+        const descending = descendingSource.slice(0, -1).reverse();
         return ascending.concat(descending);
     }
 
-    function getNoteOptions(key) {
-        const staffKeys = data.scales[key]["staff-data"]?.keys || [];
+    function getNoteOptions() {
         const choices = new Set();
 
         naturalNotes.forEach(letter => {
@@ -1075,9 +1317,6 @@
             });
         });
 
-        staffKeys.forEach(note => choices.add(note));
-        if (key.includes("-")) choices.add(key);
-
         return [...choices].sort((a, b) => {
             const aLetter = a.split("-")[0];
             const bLetter = b.split("-")[0];
@@ -1086,6 +1325,157 @@
 
             return letterDifference !== 0 ? letterDifference : a.localeCompare(b);
         });
+    }
+
+    // Fingerings
+    // Written-pitch trumpet fingerings (Trumpet Heroes chart), keyed by MIDI
+    // number (C4 = 60). Each entry lists the valves pressed; [] means open.
+    const FINGERINGS = {
+        54: [1, 2, 3], 55: [1, 3], 56: [2, 3], 57: [1, 2], 58: [1], 59: [2],
+        60: [], 61: [1, 2, 3], 62: [1, 3], 63: [2, 3], 64: [1, 2], 65: [1],
+        66: [2], 67: [], 68: [2, 3], 69: [1, 2], 70: [1], 71: [2],
+        72: [], 73: [1, 2], 74: [1], 75: [2], 76: [], 77: [1],
+        78: [2], 79: [], 80: [2, 3], 81: [1, 2], 82: [1], 83: [2],
+        84: [], 85: [1, 2], 86: [1], 87: [2], 88: [], 89: [1]
+    };
+
+    const LETTER_SEMITONES = { c: 0, d: 2, e: 4, f: 5, g: 7, a: 9, b: 11 };
+    const ACCIDENTAL_OFFSETS = { sharp: 1, flat: -1, natural: 0 };
+    const LETTER_ORDER = ["c", "d", "e", "f", "g", "a", "b"];
+    const SVG_NS = "http://www.w3.org/2000/svg";
+
+    // Semitones above C for a note name (can be -1 for C♭ or 12 for B♯).
+    function noteSemitone(note) {
+        const [letter, accidental] = note.split("-");
+        return LETTER_SEMITONES[letter] + (ACCIDENTAL_OFFSETS[accidental] || 0);
+    }
+
+    // MIDI number for every note in a sequence, using the same octave
+    // wrapping rule as the staff (starts in octave 4).
+    function getSequenceMidis(notes) {
+        let octave = Number(data.scales[currentKey]?.["octave-level"] || 4);
+        let previousLetter = null;
+
+        return notes.map(note => {
+            const letter = LETTER_ORDER.indexOf(note.split("-")[0]);
+
+            if (previousLetter !== null) {
+                const difference = letter - previousLetter;
+                if (difference < -3) octave++;
+                else if (difference > 3) octave--;
+            }
+
+            previousLetter = letter;
+            return (octave + 1) * 12 + noteSemitone(note);
+        });
+    }
+
+    // The octave of a button's note that is closest to the note being built.
+    function getButtonMidi(note, targetMidi) {
+        const pitchClass = ((noteSemitone(note) % 12) + 12) % 12;
+        return pitchClass + 12 * Math.round((targetMidi - pitchClass) / 12);
+    }
+
+    function createFingeringSvg() {
+        const svg = document.createElementNS(SVG_NS, "svg");
+        svg.setAttribute("class", "fingering");
+        svg.setAttribute("viewBox", "0 0 54 22");
+        svg.setAttribute("aria-hidden", "true");
+
+        [1, 2, 3].forEach((valveNumber, index) => {
+            const group = document.createElementNS(SVG_NS, "g");
+            group.setAttribute("transform", `translate(${9 + index * 18} 3)`);
+
+            const valve = document.createElementNS(SVG_NS, "path");
+            valve.setAttribute("class", "valve");
+            valve.setAttribute("d", "M-6 0H6V4H2V15H-2V4H-6Z");
+            valve.dataset.valve = valveNumber;
+
+            group.append(valve);
+            svg.append(group);
+        });
+
+        
+        return svg;
+    }
+
+    // Buttons are built once and reused, so the valves can animate between notes.
+    function buildNoteButtons() {
+        noteChoices.replaceChildren();
+
+        getNoteOptions().forEach(note => {
+            const button = document.createElement("button");
+            button.className = "note-button";
+            button.dataset.note = note;
+            button.title = note;
+
+            const label = document.createElement("span");
+            label.className = "note-label";
+            label.textContent = displayNote(note);
+
+            button.append(label, createFingeringSvg());
+
+            button.addEventListener("click", () => {
+                if (finished) return;
+                answers.push(note);
+                renderQuestion();
+            });
+
+            noteChoices.append(button);
+        });
+    }
+
+    function updateFingerings() {
+        noteChoices.classList.toggle("show-fingerings", showFingerings);
+
+        const targetMidi = expectedMidis[answers.length];
+        if (!showFingerings || targetMidi === undefined) return;
+
+        noteChoices.querySelectorAll(".note-button").forEach(button => {
+            const note = button.dataset.note;
+            const fingering = FINGERINGS[getButtonMidi(note, targetMidi)];
+
+            const svg = button.querySelector(".fingering");
+            svg.classList.toggle("unknown", !fingering);
+
+            svg.querySelectorAll(".valve").forEach(valve => {
+                valve.classList.toggle(
+                    "pressed",
+                    Boolean(fingering?.includes(Number(valve.dataset.valve)))
+                );
+            });
+
+            button.setAttribute(
+                "aria-label",
+                displayNote(note) + (fingering
+                    ? ", " + (fingering.length ? "valves " + fingering.join(" ") : "open")
+                    : "")
+            );
+        });
+    }
+
+    function saveFingeringSetting() {
+        showFingerings = fingeringToggle.checked;
+
+        try {
+            localStorage.setItem(FINGERING_KEY, String(showFingerings));
+        } catch (error) {
+            console.warn("Could not save fingering setting:", error);
+        }
+
+        updateFingerings();
+    }
+
+    function saveKeySignatureSetting() {
+        showKeySignature = keySignatureToggle.checked;
+
+        try {
+            localStorage.setItem(KEY_SIGNATURE_KEY, String(showKeySignature));
+        } catch (error) {
+            console.warn("Could not save key signature setting:", error);
+        }
+
+        if (currentKey && !test.classList.contains("hidden")) drawStaff();
     }
 
     // Test flow
@@ -1114,6 +1504,8 @@
                 direction
             );
 
+            expectedMidis = getSequenceMidis(expected);
+
             if (!expected.length) throw new Error("This scale has no notes.");
 
             answers = [];
@@ -1124,7 +1516,9 @@
                 displayName(currentKey) + " " +
                 displayName(currentType) + " · " +
                 displayName(currentRange) + " · " +
-                (direction === "both" ? "Ascending and Descending" : "Ascending Only");
+                (direction === "both" || currentType === "melodic-minor"
+                    ? "Ascending and Descending"
+                    : "Ascending Only");
 
             setup.classList.add("hidden");
             results.classList.add("hidden");
@@ -1157,22 +1551,9 @@
 
         $("noteInstruction").textContent = "Choose the note you think belongs here.";
         $("progressBar").style.width = (answers.length / expected.length * 100) + "%";
-        noteChoices.replaceChildren();
 
-        getNoteOptions(currentKey).forEach(note => {
-            const button = document.createElement("button");
-            button.className = "note-button";
-            button.textContent = displayNote(note);
-            button.title = note;
-
-            button.addEventListener("click", () => {
-                if (finished) return;
-                answers.push(note);
-                renderQuestion();
-            });
-
-            noteChoices.append(button);
-        });
+        if (!noteChoices.children.length) buildNoteButtons();
+        updateFingerings();
 
         $("undoButton").disabled = answers.length === 0;
         renderSelectedNotes();
@@ -1205,7 +1586,7 @@
         const mistakes = [];
 
         expected.forEach((note, index) => {
-            if (answers[index] !== note) {
+            if (!notesMatch(answers[index], note)) {
                 mistakes.push({ index, expected: note, actual: answers[index] });
             }
         });
@@ -1252,7 +1633,7 @@
             expectedSpan.textContent = (index + 1) + ". " + displayNote(note);
             expectedSpan.className = "expected";
 
-            actual.className = answers[index] !== note ? "incorrect" : "expected";
+            actual.className = notesMatch(answers[index], note) ? "expected" : "incorrect";
 
             row.append(actual, expectedSpan);
             details.append(row);
@@ -1303,6 +1684,8 @@
             updateScaleOptions();
             scaleSelect.value = next.type;
 
+            syncDirectionLock();
+
             if (customDropdowns) customDropdowns.refresh();
             startTest();
         } catch (error) {
@@ -1312,6 +1695,11 @@
             errorBox.textContent = error.message;
             console.error("Could not advance to the next scale:", error);
         }
+    }
+
+    // Initialize
+    if ($("copyrightYear")) {
+        $("copyrightYear").textContent = new Date().getFullYear();
     }
 
     // Event listeners
@@ -1362,10 +1750,11 @@
 
     $("retryButton").addEventListener("click", () => startTest());
 
-    // Initialize
-    if ($("copyrightYear")) {
-        $("copyrightYear").textContent = new Date().getFullYear();
-    }
+    fingeringToggle.addEventListener("change", saveFingeringSetting);
+
+    keySignatureToggle.addEventListener("change", saveKeySignatureSetting);
+
+    scaleSelect.addEventListener("change", syncDirectionLock);
 
     loadSettings();
 
@@ -1374,7 +1763,9 @@
             errorBox.textContent = "";
             $("startButton").disabled = true;
 
-            const response = await fetch("./scales-data.json");
+            const response = await fetch(
+                new URL("../scales-data.json", window.location.href)
+            );
 
             if (!response.ok) {
                 throw new Error(`Failed to load scales-data.json (${response.status})`);

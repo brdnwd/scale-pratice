@@ -2,7 +2,7 @@
 "use strict";
 
 // Increment this whenever the cached app files need to be refreshed.
-const CACHE_NAME = "scale-practice-v1";
+const CACHE_NAME = "scale-practice-v3";
 
 // Resolve the app's base path from the service worker's location.
 const APP_BASE = new URL("./", self.location.href);
@@ -12,7 +12,9 @@ const OFFLINE_URL = APP_BASE.href;
 // Keep these paths aligned with your actual project structure.
 const APP_FILES = [
     "./",
+    "./scales-test/index.html",
     "./index.html",
+    "./404.html",
     "./styles.css",
     "./script.js",
     "./scales-data.json",

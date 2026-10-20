@@ -1,16 +1,15 @@
 
 {
     "id": "./",
-    "name": "Scale Practice",
-    "short_name": "Scales",
-    "description": "Practice musical scales and test your knowledge of notes.",
+    "name": "Musically Trompette",
+    "short_name": "Trompette",
+    "description": "Practice trumpet scales, review scale types and ranges, and test your knowledge of notes.",
     "start_url": "./",
     "scope": "./",
     "display": "standalone",
     "display_override": [
         "standalone",
-        "minimal-ui",
-        "wide"
+        "minimal-ui"
     ],
     "orientation": "any",
     "background_color": "#252525",

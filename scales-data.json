@@ -1,168 +1,112 @@
 {
     "scales": {
         "c": {
-            "staff-data": {
-                "keys": []
-            },
-            "scale": {
-                "types": ["2-octave"],
-                "major": [
-                        "c",
-                        "d",
-                        "e",
-                        "f",
-                        "g",
-                        "a",
-                        "b",
-                        "c",
-                        "d",
-                        "e",
-                        "f",
-                        "g",
-                        "a",
-                        "b",
-                        "c"
-                ],
-                "natural-minor": [
-                        "c",
-                        "d",
-                        "e-flat",
-                        "f",
-                        "g",
-                        "a-flat",
-                        "b-flat",
-                        "c",
-                        "d",
-                        "e-flat",
-                        "f",
-                        "g",
-                        "a-flat",
-                        "b-flat",
-                        "c"
-                ],
-                "harmonic-minor": [
-                        "c",
-                        "d",
-                        "e-flat",
-                        "f",
-                        "g",
-                        "a-flat",
-                        "b",
-                        "c",
-                        "d",
-                        "e-flat",
-                        "f",
-                        "g",
-                        "a-flat",
-                        "b",
-                        "c"
-                ],
-                "melodic-minor": [
-                        "c",
-                        "d",
-                        "e-flat",
-                        "f",
-                        "g",
-                        "a",
-                        "b",
-                        "c",
-                        "d",
-                        "e",
-                        "f",
-                        "g",
-                        "a",
-                        "b",
-                        "c"
-                ]
-            }
+            "octave-level": "4",
+            "key-signature": [],
+            "types": ["1-octave", "2-octave"],
+            "major": ["c", "d", "e", "f", "g", "a", "b", "c", "d", "e", "f", "g", "a", "b", "c"],
+            "natural-minor": ["e-flat", "a-flat", "b-flat"],
+            "harmonic-minor": ["e-flat", "a-flat"],
+            "melodic-minor": ["e-flat"]
         },
-        "c-sharp": {
-            "staff-data": {
-                "keys": [
-                    "f-sharp",
-                    "c-sharp",
-                    "g-sharp",
-                    "d-sharp",
-                    "a-sharp",
-                    "e-sharp",
-                    "b-sharp"
-                ]
-            },
-            "scale": {
-                "types": ["2-octave","extended-range"],
-                "major": [
-                    "c-sharp",
-                    "d-sharp",
-                    "e-sharp",
-                    "f-sharp",
-                    "g-sharp",
-                    "a-sharp",
-                    "b-sharp",
-                    "c-sharp",
-                    "d-sharp",
-                    "e-sharp",
-                    "f-sharp",
-                    "g-sharp",
-                    "a-sharp",
-                    "b-sharp",
-                    "c-sharp"
-                ],
-                "natural-minor": [
-                    "c-sharp",
-                    "d-sharp",
-                    "e-natural",
-                    "f-sharp",
-                    "g-sharp",
-                    "a-natural",
-                    "b-natural",
-                    "c-sharp",
-                    "d-sharp",
-                    "e-natural",
-                    "f-sharp",
-                    "g-sharp",
-                    "a-natural",
-                    "b-natural",
-                    "c-sharp"
-                ],
-                "harmonic-minor": [
-                    "c-sharp",
-                    "d-sharp",
-                    "e-natural",
-                    "f-sharp",
-                    "g-sharp",
-                    "a-natural",
-                    "b-sharp",
-                    "c-sharp",
-                    "d-sharp",
-                    "e-natural",
-                    "f-sharp",
-                    "g-sharp",
-                    "a-natural",
-                    "b-sharp",
-                    "c-sharp"
-                ],
-                "melodic-minor": [
-                    "c-sharp",
-                    "d-sharp",
-                    "e-natural",
-                    "f-sharp",
-                    "g-sharp",
-                    "a-sharp",
-                    "b-sharp",
-                    "c-sharp",
-                    "d-sharp",
-                    "e-natural",
-                    "f-sharp",
-                    "g-sharp",
-                    "a-sharp",
-                    "b-sharp",
-                    "c-sharp"
-                ]
-            }
+        "c#": {
+            "octave-level": "4",
+            "key-signature": ["f-sharp", "c-sharp", "g-sharp", "d-sharp", "a-sharp", "e-sharp", "b-sharp"],
+            "types": ["1-octave", "2-octave", "extended-range"],
+            "major": ["c", "d", "e", "f", "g", "a", "b", "c", "d", "e", "f", "g", "a", "b", "c"],
+            "natural-minor": ["e-natural", "a-natural", "b-natural"],
+            "harmonic-minor": ["e-natural", "a-natural"],
+            "melodic-minor": ["e-natural"]
+        },
+        "d": {
+            "octave-level": "4",
+            "key-signature": ["f-sharp", "c-sharp"],
+            "types": ["1-octave", "2-octave", "extended-range"],
+            "major": ["d", "e", "f", "g", "a", "b", "c", "d", "e", "f", "g", "a", "b", "c", "d"],
+            "natural-minor": ["f-natural", "b-flat", "c-natural"],
+            "harmonic-minor": ["f-natural", "b-flat"],
+            "melodic-minor": ["f-natural"]
+        },
+        "eb": {
+            "octave-level": "4",
+            "key-signature": ["b-flat", "e-flat", "a-flat"],
+            "types": ["1-octave", "2-octave", "extended-range"],
+            "major": ["e", "f", "g", "a", "b", "c", "d", "e", "f", "g", "a", "b", "c", "d", "e"],
+            "natural-minor": ["g-flat", "c-flat", "d-flat"],
+            "harmonic-minor": ["g-flat", "c-flat"],
+            "melodic-minor": ["g-flat"]
+        },
+        "e": {
+            "octave-level": "4",
+            "key-signature": ["f-sharp", "c-sharp", "g-sharp", "d-sharp"],
+            "types": ["1-octave", "2-octave", "extended-range"],
+            "major": ["e", "f", "g", "a", "b", "c", "d", "e", "f", "g", "a", "b", "c", "d", "e"],
+            "natural-minor": ["g-natural", "c-natural", "d-natural"],
+            "harmonic-minor": ["g-natural", "c-natural"],
+            "melodic-minor": ["g-natural"]
+        },
+        "f": {
+            "octave-level": "4",
+            "key-signature": ["b-flat"],
+            "types": ["1-octave", "2-octave", "extended-range"],
+            "major": ["f", "g", "a", "b", "c", "d", "e", "f", "g", "a", "b", "c", "d", "e", "f"],
+            "natural-minor": ["a-flat", "d-flat", "e-flat"],
+            "harmonic-minor": ["a-flat", "d-flat"],
+            "melodic-minor": ["a-flat"]
+        },
+        "f#": {
+            "octave-level": "3",
+            "key-signature": ["f-sharp", "c-sharp", "g-sharp", "d-sharp", "a-sharp", "e-sharp"],
+            "types": ["1-octave", "2-octave", "extended-range"],
+            "major": ["f", "g", "a", "b", "c", "d", "e", "f", "g", "a", "b", "c", "d", "e", "f"],
+            "natural-minor": ["a-natural", "d-natural", "e-natural"],
+            "harmonic-minor": ["a-natural", "d-natural"],
+            "melodic-minor": ["a-natural"]
+        },
+        "g": {
+            "octave-level": "3",
+            "key-signature": ["f-sharp"],
+            "types": ["1-octave", "2-octave", "extended-range"],
+            "major": ["g", "a", "b", "c", "d", "e", "f", "g", "a", "b", "c", "d", "e", "f", "g"],
+            "natural-minor": ["b-flat", "e-flat", "f-natural"],
+            "harmonic-minor": ["b-flat", "e-flat"],
+            "melodic-minor": ["b-flat"]
+        },
+        "ab": {
+            "octave-level": "3",
+            "key-signature": ["b-flat", "e-flat", "a-flat", "d-flat"],
+            "types": ["1-octave", "2-octave", "extended-range"],
+            "major": ["a", "b", "c", "d", "e", "f", "g", "a", "b", "c", "d", "e", "f", "g", "a"],
+            "natural-minor": ["c-flat", "f-flat", "g-natural"],
+            "harmonic-minor": ["c-flat", "f-flat"],
+            "melodic-minor": ["c-flat"]
+        },
+        "a": {
+            "octave-level": "3",
+            "key-signature": ["f-sharp", "c-sharp", "g-sharp"],
+            "types": ["1-octave", "2-octave", "extended-range"],
+            "major": ["a", "b", "c", "d", "e", "f", "g", "a", "b", "c", "d", "e", "f", "g", "a"],
+            "natural-minor": ["c-natural", "f-natural", "g-natural"],
+            "harmonic-minor": ["c-natural", "f-natural"],
+            "melodic-minor": ["c-natural"]
+        },
+        "bb": {
+            "octave-level": "3",
+            "key-signature": ["b-flat", "e-flat"],
+            "types": ["1-octave", "2-octave", "extended-range"],
+            "major": ["b", "c", "d", "e", "f", "g", "a", "b", "c", "d", "e", "f", "g", "a", "b"],
+            "natural-minor": ["d-flat", "g-flat", "a-flat"],
+            "harmonic-minor": ["d-flat", "g-flat"],
+            "melodic-minor": ["d-flat"]
+        },
+        "b": {
+            "octave-level": "3",
+            "key-signature": ["f-sharp", "c-sharp", "g-sharp", "d-sharp", "a-sharp"],
+            "types": ["1-octave", "2-octave", "extended-range"],
+            "major": ["b", "c", "d", "e", "f", "g", "a", "b", "c", "d", "e", "f", "g", "a", "b"],
+            "natural-minor": ["d-natural", "g-natural", "a-natural"],
+            "harmonic-minor": ["d-natural", "g-natural"],
+            "melodic-minor": ["d-natural"]
         }
-
     }
-
-
-
 }
