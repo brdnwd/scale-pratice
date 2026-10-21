@@ -1,8 +1,8 @@
 
 {
     "id": "./",
-    "name": "Musically Trompette",
-    "short_name": "Trompette",
+    "name": "TrompetteLabs",
+    "short_name": "TrompetteLabs",
     "description": "Practice trumpet scales, review scale types and ranges, and test your knowledge of notes.",
     "start_url": "./",
     "scope": "./",

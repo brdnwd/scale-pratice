@@ -7,7 +7,6 @@
         <link rel="icon" href="../icons/icon.png">
         <title>Scales Builder</title>
         <link rel="stylesheet" href="../style.css">
-        <link rel="manifest" href="../manifest.json">
     </head>
     <body>
         <main>
@@ -72,21 +71,22 @@
                         role="img"
                         aria-label="Musical staff showing the notes selected so far">
                         <g class="staff-lines">
-                            <line x1="40" y1="45" x2="660" y2="45"/>
-                            <line x1="40" y1="57" x2="660" y2="57"/>
-                            <line x1="40" y1="69" x2="660" y2="69"/>
-                            <line x1="40" y1="81" x2="660" y2="81"/>
-                            <line x1="40" y1="93" x2="660" y2="93"/>
+                            <line x1="20" y1="45" x2="660" y2="45"></line>
+                            <line x1="20" y1="57" x2="660" y2="57"></line>
+                            <line x1="20" y1="69" x2="660" y2="69"></line>
+                            <line x1="20" y1="81" x2="660" y2="81"></line>
+                            <line x1="20" y1="93" x2="660" y2="93"></line>
                         </g>
-                        <text x="8" y="88" class="treble-clef">𝄞</text>
+                        <text x="30" y="95" class="treble-clef">𝄞</text>
                         <g id="staffKeySignature"></g>
                         <g id="staffLedgerLines"></g>
                         <g id="staffNotes"></g>
                     </svg>
-                    <div class="progress">
+                </div>
+
+                <div class="progress">
                         <div class="progress-bar" id="progressBar"></div>
                     </div>
-                </div>
 
                 <div class="note-display">
                     <div class="number" id="noteNumber"></div>

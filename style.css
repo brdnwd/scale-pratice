@@ -130,6 +130,12 @@
     box-sizing: border-box;
 }
 
+html.settings-open,
+html.settings-open body {
+    overflow: hidden;
+    overscroll-behavior: none;
+}
+
 ::selection {
     color: var(--color-text-opposed);
     background-color: var(--color-border-primary);
@@ -461,6 +467,7 @@ button:disabled {
     height: 6px;
     overflow: hidden;
     background: var(--color-background-progress);
+    border-radius: 999px;
 }
 
 .progress-bar {
@@ -469,6 +476,7 @@ button:disabled {
     height: 100%;
     overflow: hidden;
     background: var(--color-accent);
+    border-radius: 999px;
     transition: width 0.6s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
@@ -701,7 +709,7 @@ button:disabled {
 .treble-clef {
     fill: var(--color-text);
     font-family: "Noto Music", "Segoe UI Symbol", serif;
-    font-size: 57px;
+    font-size: 70px;
 }
 
 .staff-note {
@@ -714,9 +722,13 @@ button:disabled {
 
 .staff-accidental {
     fill: var(--color-text);
-    font-family: Arial, sans-serif;
-    font-size: 19px;
-    text-anchor: middle;
+    font-family: "Google Sans", sans-serif !important;
+    font-size: 1.2em;
+    font-weight: 400;
+    font-variation-settings: normal;
+    font-stretch: normal;
+    line-height: 1;
+    white-space: nowrap;
 }
 
 .staff-ledger {
@@ -1037,12 +1049,6 @@ button:disabled {
 .scale-settings-toggle:hover {
     background: var(--color-background-secondary);
     color: var(--color-text);
-}
-
-.key-signature {
-    font-family: "Google Sans", sans-serif !important;
-    line-height: 1;
-    white-space: nowrap;
 }
 
 .keyboard-keys {

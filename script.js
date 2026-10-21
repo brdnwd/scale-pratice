@@ -102,12 +102,16 @@
     const scaleTypeFilters = $("scaleTypeFilters");
     const scaleRangeFilters = $("scaleRangeFilters");
 
-    if (isMobile) {
-        $("fingeringSettings")?.remove();
-        $("valveInputSettings")?.remove();
-        $("valveInputToggle").parentElement.parentElement.remove();
-        valvePicker?.remove();
-        noteChoices?.classList.remove("show-fingerings");
+    try {
+        if (isMobile) {
+            $("fingeringSettings")?.remove();
+            $("valveInputSettings")?.remove();
+            $("valveInputToggle").parentElement.parentElement.remove();
+            valvePicker?.remove();
+            noteChoices?.classList.remove("show-fingerings");
+        }
+    } catch (e) {
+        // Ignore
     }
 
     // Test state
@@ -1062,6 +1066,8 @@
     }
 
     function openSettings() {
+        document.documentElement.classList.add("settings-open");
+
         if (!settingsOverlay) return;
 
         if (hasScaleBuilder && data?.scales) {
@@ -1074,6 +1080,8 @@
     }
 
     function closeSettings() {
+        document.documentElement.classList.remove("settings-open");
+
         if (!settingsOverlay) return;
 
         settingsOverlay.classList.add("hidden");
@@ -1123,7 +1131,7 @@
 
         const signature = showKeySignature ? getKeySignature(currentKey) : [];
         const signatureMap = showKeySignature ? getKeySignatureMap(currentKey) : {};
-        const signatureStartX = 52;
+        const signatureStartX = 75;
         const signatureSpacing = 11;
 
         signature.forEach((note, index) => {
@@ -1220,7 +1228,7 @@
 
             if (needsAccidental && accidentalSymbols[effectiveAccidental]) {
                 const accidentalText = document.createElementNS(NS, "text");
-                accidentalText.setAttribute("x", x - 12);
+                accidentalText.setAttribute("x", x - 17);
                 accidentalText.setAttribute(
                     "y",
                     y + ACCIDENTAL_Y_OFFSET[effectiveAccidental]
@@ -1531,17 +1539,21 @@
     }
 
     function getNoteOptions() {
-        const choices = new Set();
+        const choices = new Map();
 
         naturalNotes.forEach(letter => {
-            choices.add(letter);
+            [letter, ...accidentalNotes.map(accidental =>
+                letter + "-" + accidental
+            )].forEach(note => {
+                const name = notePitch(note);
 
-            accidentalNotes.forEach(accidental => {
-                choices.add(letter + "-" + accidental);
+                if (!choices.has(name)) {
+                    choices.set(name, note);
+                }
             });
         });
 
-        return [...choices].sort((a, b) => {
+        return [...choices.values()].sort((a, b) => {
             const aLetter = a.split("-")[0];
             const bLetter = b.split("-")[0];
 
@@ -1628,11 +1640,14 @@
             const button = document.createElement("button");
             button.className = "note-button";
             button.dataset.note = note;
-            button.title = note;
+            button.title = displayNote(note);
 
             const label = document.createElement("span");
             label.className = "note-label";
-            label.textContent = displayNote(note);
+
+            label.textContent = naturalNotes.includes(note)
+                ? displayNote(note) + " / " + displayNote(note + "-natural")
+                : displayNote(note);
 
             button.append(label);
 
@@ -1845,10 +1860,10 @@
 
             if (noteLetter) {
                 noteLetter.textContent = answers.length
-                    ? answers[answers.length - 1]
+                    ? displayNote(answers[answers.length - 1])
                     : "?";
             }
-
+            
             if (noteChoices && !noteChoices.children.length) {
                 buildNoteButtons();
             }
@@ -2384,7 +2399,7 @@
     customDropdowns = initCustomDropdowns();
     customDropdowns.refresh();
 
-    if ("serviceWorker" in navigator) {
+    if ("serviceWorker" in navigator && window.location.pathname === "/") {
         window.addEventListener("load", () => {
             navigator.serviceWorker.register("./service-worker.js")
                 .then(() => {
