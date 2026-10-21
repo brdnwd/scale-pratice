@@ -63,6 +63,15 @@
     const rangeSelect = $("rangeSelect");
     const directionSelect = $("directionSelect");
     const errorBox = $("error");
+    const backButton = $("backButton");
+
+    function updateBackButton() {
+        if (!backButton) return;
+
+        backButton.href = test && !test.classList.contains("hidden")
+            ? "/scales-builder/"
+            : "/";
+    }
 
     const hasScaleBuilder = Boolean(
         keySelect &&
@@ -178,14 +187,6 @@
         return "range:" + key + ":" + range;
     }
 
-    function typeSettingId(type) {
-        return "type:" + type;
-    }
-
-    function globalRangeSettingId(range) {
-        return "allranges:" + range;
-    }
-
     function scaleSettingId(key, range, type) {
         return "scale:" + key + ":" + range + ":" + type;
     }
@@ -201,9 +202,7 @@
     function isScaleVisible(key, range, type) {
         return !hiddenScales.has(keySettingId(key)) &&
             !hiddenScales.has(rangeSettingId(key, range)) &&
-            !hiddenScales.has(scaleSettingId(key, range, type)) &&
-            !hiddenScales.has(typeSettingId(type)) &&
-            !hiddenScales.has(globalRangeSettingId(range));
+            !hiddenScales.has(scaleSettingId(key, range, type));
     }
 
     function getVisibleScaleTypes(key, range) {
@@ -787,6 +786,7 @@
 
             saveHiddenScales();
             updateSettingsCheckboxes();
+            updateFilterToggles();
             refreshScaleSelectors();
         });
 
@@ -817,39 +817,141 @@
         return ranges;
     }
 
-    function renderFilterGroup(container, values, idFor) {
+    // Every key / range / scale type combination in the data.
+    function getScaleEntries() {
+        const entries = [];
+
+        Object.keys(data.scales).forEach(key => {
+            const ranges = data.scales[key].types || [];
+
+            getScaleTypes(key).forEach(type => {
+                ranges.forEach(range => entries.push({ key, range, type }));
+            });
+        });
+
+        return entries;
+    }
+
+    function getFilterState(entries) {
+        const visibleCount = entries.filter(entry =>
+            isScaleVisible(entry.key, entry.range, entry.type)
+        ).length;
+
+        if (visibleCount === 0) return "off";
+        return visibleCount === entries.length ? "on" : "mixed";
+    }
+
+    // Turns a whole group of scales on or off by setting their individual
+    // checkboxes, so each one can still be changed afterwards.
+    function setFilterEntries(entries, visible) {
+        entries.forEach(({ key, range, type }) => {
+            if (visible) {
+                hiddenScales.delete(scaleSettingId(key, range, type));
+                hiddenScales.delete(rangeSettingId(key, range));
+                hiddenScales.delete(keySettingId(key));
+            } else {
+                hiddenScales.add(scaleSettingId(key, range, type));
+            }
+        });
+
+        saveHiddenScales();
+        updateSettingsCheckboxes();
+        updateFilterToggles();
+        refreshScaleSelectors();
+    }
+
+    const filterToggles = [];
+
+    function updateFilterToggles() {
+        filterToggles.forEach(({ button, entries }) => {
+            const state = getFilterState(entries);
+
+            button.dataset.state = state;
+            button.setAttribute(
+                "aria-pressed",
+                state === "on" ? "true" : state === "off" ? "false" : "mixed"
+            );
+        });
+    }
+
+    function renderFilterGroup(container, values, matches) {
         if (!container) return;
 
         container.replaceChildren();
 
         values.forEach(value => {
-            const label = document.createElement("label");
-            label.className = "scale-type-filter";
+            const entries = getScaleEntries().filter(entry => matches(entry, value));
 
-            const checkbox = document.createElement("input");
-            checkbox.type = "checkbox";
-            checkbox.checked = !hiddenScales.has(idFor(value));
-
-            checkbox.addEventListener("change", () => {
-                if (checkbox.checked) hiddenScales.delete(idFor(value));
-                else hiddenScales.add(idFor(value));
-
-                saveHiddenScales();
-                updateSettingsCheckboxes();
-                refreshScaleSelectors();
-            });
+            const button = document.createElement("button");
+            button.type = "button";
+            button.className = "scale-type-filter";
 
             const name = document.createElement("span");
             name.textContent = displayName(value);
 
-            label.append(checkbox, name);
-            container.append(label);
+            const track = document.createElement("span");
+            track.className = "filter-switch";
+            track.setAttribute("aria-hidden", "true");
+
+            const knob = document.createElement("span");
+            knob.className = "filter-switch-knob";
+            track.append(knob);
+
+            button.append(name, track);
+
+            button.addEventListener("click", () => {
+                setFilterEntries(entries, getFilterState(entries) !== "on");
+            });
+
+            filterToggles.push({ button, entries });
+            container.append(button);
+
+            button.dataset.state = getFilterState(entries);
         });
     }
 
     function renderGlobalFilters() {
-        renderFilterGroup(scaleTypeFilters, getAllScaleTypes(), typeSettingId);
-        renderFilterGroup(scaleRangeFilters, getAllRanges(), globalRangeSettingId);
+        filterToggles.length = 0;
+
+        renderFilterGroup(
+            scaleTypeFilters,
+            getAllScaleTypes(),
+            (entry, type) => entry.type === type
+        );
+
+        renderFilterGroup(
+            scaleRangeFilters,
+            getAllRanges(),
+            (entry, range) => entry.range === range
+        );
+    }
+
+    // Older versions saved whole-type and whole-range filters as their own
+    // entries. Expand them into individual scales so nothing is locked out.
+    // TODO: Remove at a later date.
+    function migrateGlobalFilters() {
+        let changed = false;
+
+        [...hiddenScales].forEach(id => {
+            const isType = id.startsWith("type:");
+            const isRange = id.startsWith("allranges:");
+            if (!isType && !isRange) return;
+
+            const value = id.slice(id.indexOf(":") + 1);
+
+            getScaleEntries().forEach(entry => {
+                if ((isType ? entry.type : entry.range) === value) {
+                    hiddenScales.add(
+                        scaleSettingId(entry.key, entry.range, entry.type)
+                    );
+                }
+            });
+
+            hiddenScales.delete(id);
+            changed = true;
+        });
+
+        if (changed) saveHiddenScales();
     }
 
     function renderScaleSettings() {
@@ -895,24 +997,23 @@
             ...scaleSettingsTree.querySelectorAll("input[type='checkbox']")
         ];
 
+        // Individual scales reflect their own saved visibility, independently
+        // of whether their parent key or range is disabled.
         checkboxes.forEach(checkbox => {
             const id = checkbox.dataset.settingId;
-            const parts = id.split(":");
 
-            if (id.startsWith("scale:")) {
-                const type = parts.slice(3).join(":");
+            if (!id.startsWith("scale:")) return;
 
-                checkbox.checked = isScaleVisible(parts[1], parts[2], type);
-                checkbox.disabled =
-                    hiddenScales.has(typeSettingId(type)) ||
-                    hiddenScales.has(globalRangeSettingId(parts[2]));
-            } else if (id.startsWith("range:")) {
-                checkbox.disabled =
-                    hiddenScales.has(globalRangeSettingId(parts[2]));
-            }
+            checkbox.checked = !hiddenScales.has(id);
+            checkbox.indeterminate = false;
         });
 
+        // Update ranges and keys from their descendant scales.
         checkboxes.reverse().forEach(checkbox => {
+            const id = checkbox.dataset.settingId;
+
+            if (id.startsWith("scale:")) return;
+
             const node = checkbox.closest(".scale-settings-node");
             if (!node) return;
 
@@ -928,11 +1029,16 @@
                 child.checked || child.indeterminate
             ).length;
 
-            checkbox.checked =
-                visibleCount === descendants.length && descendants.length > 0;
+            // A disabled key or range stays unchecked, but its children
+            // can still show their own mixed visibility states.
+            const explicitlyHidden = hiddenScales.has(id);
 
-            checkbox.indeterminate =
-                visibleCount > 0 && visibleCount < descendants.length;
+            checkbox.checked = !explicitlyHidden &&
+                visibleCount === descendants.length;
+
+            checkbox.indeterminate = !explicitlyHidden &&
+                visibleCount > 0 &&
+                visibleCount < descendants.length;
         });
     }
 
@@ -1908,6 +2014,7 @@
             results?.classList.add("hidden");
             test?.classList.remove("hidden");
 
+            updateBackButton();
             renderQuestion();
             resetStaffScroll();
             requestAnimationFrame(resetStaffScroll);
@@ -2027,6 +2134,7 @@
         test?.classList.add("hidden");
         results?.classList.add("hidden");
         setup?.classList.remove("hidden");
+        updateBackButton();
     }
 
     function nextScale() {
@@ -2219,6 +2327,7 @@
                 throw new Error("No scales found in scales-data.json.");
             }
 
+            migrateGlobalFilters();
             populateKeys();
 
             const savedKey = localStorage.getItem(SELECTED_KEY_KEY);

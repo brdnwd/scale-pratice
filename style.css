@@ -52,6 +52,7 @@
     --color-error: #ff8585;
     --color-green: #000;
     --color-red: #ff8585;
+    --color-yellow: #e9e57c;
     --color-fingerings: rgb(224, 224, 224);
 
     /* Staff, effects and scrollbar */
@@ -110,6 +111,7 @@
     --color-error: #c62828;
     --color-green: #00000036;
     --color-red: #c62828;
+    --color-yellow: #e9e57c;
     --color-fingerings: #000;
 
     /* Staff, effects and scrollbar */
@@ -912,32 +914,64 @@ button:disabled {
     margin-bottom: 0;
 }
 
+/* Global filter switches */
+
 .scale-type-filter {
     display: flex;
     flex-direction: row;
     align-items: center;
-    gap: 9px;
+    justify-content: space-between;
+    gap: 10px;
+    width: 100%;
     padding: 9px 11px;
     background: var(--color-background-chip);
     color: var(--color-text);
     border: 1px solid var(--color-border-input);
     border-radius: 7px;
     font-size: 14px;
-    cursor: pointer;
+    text-align: left;
     user-select: none;
 }
 
-.scale-type-filter:hover {
-    background: var(--color-background-hover);
+.filter-switch {
+    position: relative;
+    flex: 0 0 auto;
+    width: 34px;
+    height: 18px;
+    background: var(--color-background-progress);
+    border: 1px solid var(--color-border-input);
+    border-radius: 999px;
+    transition: background 0.18s ease, border-color 0.18s ease;
 }
 
-.scale-type-filter input {
-    flex: 0 0 auto;
-    width: 15px;
-    height: 15px;
-    margin: 0;
-    accent-color: var(--color-accent);
-    cursor: pointer;
+.filter-switch-knob {
+    position: absolute;
+    top: 2px;
+    left: 2px;
+    width: 12px;
+    height: 12px;
+    background: var(--color-text-muted);
+    border-radius: 50%;
+    transition: transform 0.18s ease, background 0.18s ease;
+}
+
+.scale-type-filter[data-state="on"] .filter-switch {
+    background: var(--color-background-primary);
+    border-color: var(--color-accent);
+}
+
+.scale-type-filter[data-state="on"] .filter-switch-knob {
+    background: #fff;
+    transform: translateX(16px);
+}
+
+.scale-type-filter[data-state="mixed"] .filter-switch {
+    border-color: var(--color-yellow);
+}
+
+.scale-type-filter[data-state="mixed"] .filter-switch-knob {
+    background: var(--color-yellow);
+    transform: translateX(8px);
 }
 
 .scale-settings-node {
@@ -965,11 +999,6 @@ button:disabled {
     margin: 0;
     accent-color: var(--color-accent);
     cursor: pointer;
-}
-
-.scale-settings-row input:disabled {
-    cursor: not-allowed;
-    opacity: 0.4;
 }
 
 .scale-settings-row input:indeterminate {
