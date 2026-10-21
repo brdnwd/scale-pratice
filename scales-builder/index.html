@@ -1,0 +1,301 @@
+
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <link rel="icon" href="../icons/icon.png">
+        <title>Scales Builder</title>
+        <link rel="stylesheet" href="../style.css">
+        <link rel="manifest" href="../manifest.json">
+    </head>
+    <body>
+        <main>
+            <nav class="navbar">
+                <a class="navbar-link" href="/" aria-label="Go Back">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="m15 18-6-6 6-6" />
+                    </svg>
+                    <span>Go Back</span>
+                </a>
+                <a class="navbar-link" href="#" id="settingsButton" aria-label="Settings">
+                    <span>Settings</span>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M9.671 4.136a2.34 2.34 0 0 1 4.659 0 2.34 2.34 0 0 0 3.319 1.915 2.34 2.34 0 0 1 2.33 4.033 2.34 2.34 0 0 0 0 3.831 2.34 2.34 0 0 1-2.33 4.033 2.34 2.34 0 0 0-3.319 1.915 2.34 2.34 0 0 1-4.659 0 2.34 2.34 0 0 0-3.32-1.915 2.34 2.34 0 0 1-2.33-4.033 2.34 2.34 0 0 0 0-3.831A2.34 2.34 0 0 1 6.35 6.051a2.34 2.34 0 0 0 3.319-1.915" />
+                        <circle cx="12" cy="12" r="3" />
+                    </svg>
+                </a>
+            </nav>
+            <h1>Scales Builder</h1>
+            <p>Choose a key, scale, and range. Build the scale one note at a time. Your answers are graded automatically when you finish.</p>
+
+            <section class="panel" id="setup">
+                <div class="settings">
+                    <label>
+                        Key
+                        <select id="keySelect"></select>
+                    </label>
+
+                    <label>
+                        Scale type
+                        <select id="scaleSelect"></select>
+                    </label>
+
+                    <label>
+                        Range
+                        <select id="rangeSelect"></select>
+                    </label>
+
+                     <label>
+                        Direction
+                        <select id="directionSelect">
+                            <option value="ascending">Ascending only</option>
+                            <option value="both">Ascending and descending</option>
+                        </select>
+                    </label>
+                </div>
+                
+
+                <div class="actions">
+                    <button class="primary text-opposed-color" id="startButton">Start Test</button>
+                    <button class="red wavy randomButton">Choose a Random Scale</button>
+                </div>
+            </section>
+
+            <section class="panel hidden" id="test">
+                <div id="testTitle"></div>
+                
+                <div class="staff-wrapper" id="staffWrapper">
+                    <svg id="scaleStaff"
+                        xmlns="http://www.w3.org/2000/svg"
+                        viewBox="0 0 680 145"
+                        role="img"
+                        aria-label="Musical staff showing the notes selected so far">
+                        <g class="staff-lines">
+                            <line x1="40" y1="45" x2="660" y2="45"/>
+                            <line x1="40" y1="57" x2="660" y2="57"/>
+                            <line x1="40" y1="69" x2="660" y2="69"/>
+                            <line x1="40" y1="81" x2="660" y2="81"/>
+                            <line x1="40" y1="93" x2="660" y2="93"/>
+                        </g>
+                        <text x="8" y="88" class="treble-clef">𝄞</text>
+                        <g id="staffKeySignature"></g>
+                        <g id="staffLedgerLines"></g>
+                        <g id="staffNotes"></g>
+                    </svg>
+                    <div class="progress">
+                        <div class="progress-bar" id="progressBar"></div>
+                    </div>
+                </div>
+
+                <div class="note-display">
+                    <div class="number" id="noteNumber"></div>
+                    <div class="letter" id="noteLetter"></div>
+                    <div class="instruction" id="noteInstruction">Choose the correct note.</div>
+                </div>
+
+                <div class="note-grid" id="noteChoices"></div>
+
+                <div class="valve-picker hidden" id="valvePicker">
+                    <div class="trumpet-valves">
+                        <svg id="trumpetValves" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 360" role="group" aria-label="Trumpet valves. Use left, down, and right arrow keys to press them.">
+                            <defs>
+                                <linearGradient id="valveBody" x1="0" y1="0" x2="1" y2="0">
+                                    <stop offset="0" stop-color="#f8bf00"/>
+                                    <stop offset=".22" stop-color="#ffcf19"/>
+                                    <stop offset=".48" stop-color="#f5b900"/>
+                                    <stop offset=".78" stop-color="#e5a900"/>
+                                    <stop offset="1" stop-color="#c99500"/>
+                                </linearGradient>
+                                <linearGradient id="valveCap" x1="0" y1="0" x2="0" y2="1">
+                                    <stop offset="0" stop-color="#dedddb"/>
+                                    <stop offset=".65" stop-color="#dedddb"/>
+                                    <stop offset="1" stop-color="#bcbcb9"/>
+                                </linearGradient>
+                            </defs>
+
+                            <g class="valve" data-valve="0" role="button" tabindex="0" aria-label="First valve, left arrow">
+                                <g class="valve-moving">
+                                    <rect x="112" y="176" width="136" height="144" fill="url(#valveBody)"/>
+                                    <path d="M112 176 H248 V320 H112Z" fill="#ffca05"/>
+                                    <path d="M136 176 H160 V320 H136Z" fill="#ffe044" opacity=".55"/>
+                                    <path d="M224 176 H248 V320 H224Z" fill="#b88b00" opacity=".45"/>
+                                    <path d="M112 220 Q150 236 185 238 Q218 238 248 255 V320 H112Z" fill="#f1b500" opacity=".55"/>
+
+                                    <path d="M106 146 A74 38 0 0 1 254 146 V164 A74 38 0 0 1 106 164Z" fill="#dca500"/>
+                                    <path d="M106 146 A74 38 0 0 1 254 146 V166 A74 38 0 0 1 106 166Z" fill="#f6c400"/>
+                                    <ellipse cx="180" cy="146" rx="74" ry="38" fill="#ffd22c"/>
+                                    <ellipse cx="180" cy="146" rx="57" ry="27" fill="#000"/>
+                                    <path d="M118 158 Q126 168 143 174" fill="none" stroke="#ffe77c" stroke-width="7" stroke-linecap="round"/>
+
+                                    <rect x="157" y="85" width="46" height="68" rx="13" fill="#9e9f9d"/>
+                                    <path d="M181 88 Q198 92 198 105 V145 Q198 153 189 153 H181Z" fill="#8b8d8b" opacity=".7"/>
+                                    <g class="valve-stem">
+                                        <rect x="171" y="53" width="18" height="43" rx="5" fill="#a3a5a3"/>
+                                        <path d="M171 64 Q185 69 185 79 V94 H171Z" fill="#8d8f8d"/>
+                                    </g>
+                                    <g class="valve-button">
+                                        <path d="M107 53 A73 35 0 0 0 253 53 V66 A73 35 0 0 1 107 66Z" fill="#bdbdbb"/>
+                                        <ellipse cx="180" cy="53" rx="73" ry="35" fill="url(#valveCap)"/>
+                                        <path d="M119 63 Q130 77 149 80" fill="none" stroke="#f4f3f1" stroke-width="8" stroke-linecap="round"/>
+                                    </g>
+                                </g>
+                            </g>
+
+                            <g class="valve" data-valve="1" role="button" tabindex="0" aria-label="Second valve, down arrow">
+                                <g class="valve-moving">
+                                    <rect x="312" y="176" width="136" height="144" fill="url(#valveBody)"/>
+                                    <path d="M312 176 H336 V320 H312Z" fill="#ffca05"/>
+                                    <path d="M336 176 H360 V320 H336Z" fill="#ffe044" opacity=".55"/>
+                                    <path d="M424 176 H448 V320 H424Z" fill="#b88b00" opacity=".45"/>
+                                    <path d="M312 220 Q350 236 385 238 Q418 238 448 255 V320 H312Z" fill="#f1b500" opacity=".55"/>
+
+                                    <path d="M306 146 A74 38 0 0 1 454 146 V164 A74 38 0 0 1 306 164Z" fill="#dca500"/>
+                                    <path d="M306 146 A74 38 0 0 1 454 146 V166 A74 38 0 0 1 306 166Z" fill="#f6c400"/>
+                                    <ellipse cx="380" cy="146" rx="74" ry="38" fill="#ffd22c"/>
+                                    <ellipse cx="380" cy="146" rx="57" ry="27" fill="#000"/>
+                                    <path d="M318 158 Q326 168 343 174" fill="none" stroke="#ffe77c" stroke-width="7" stroke-linecap="round"/>
+
+                                    <rect x="357" y="85" width="46" height="68" rx="13" fill="#9e9f9d"/>
+                                    <path d="M381 88 Q398 92 398 105 V145 Q398 153 389 153 H381Z" fill="#8b8d8b" opacity=".7"/>
+                                    <g class="valve-stem">
+                                        <rect x="371" y="53" width="18" height="43" rx="5" fill="#a3a5a3"/>
+                                        <path d="M371 64 Q385 69 385 79 V94 H371Z" fill="#8d8f8d"/>
+                                    </g>
+                                    <g class="valve-button">
+                                        <path d="M307 53 A73 35 0 0 0 453 53 V66 A73 35 0 0 1 307 66Z" fill="#bdbdbb"/>
+                                        <ellipse cx="380" cy="53" rx="73" ry="35" fill="url(#valveCap)"/>
+                                        <path d="M319 63 Q330 77 349 80" fill="none" stroke="#f4f3f1" stroke-width="8" stroke-linecap="round"/>
+                                    </g>
+                                </g>
+                            </g>
+
+                            <g class="valve" data-valve="2" role="button" tabindex="0" aria-label="Third valve, right arrow">
+                                <g class="valve-moving">
+                                    <rect x="512" y="176" width="136" height="144" fill="url(#valveBody)"/>
+                                    <path d="M512 176 H536 V320 H512Z" fill="#ffca05"/>
+                                    <path d="M536 176 H560 V320 H536Z" fill="#ffe044" opacity=".55"/>
+                                    <path d="M624 176 H648 V320 H624Z" fill="#b88b00" opacity=".45"/>
+                                    <path d="M512 220 Q550 236 585 238 Q618 238 648 255 V320 H512Z" fill="#f1b500" opacity=".55"/>
+
+                                    <path d="M506 146 A74 38 0 0 1 654 146 V164 A74 38 0 0 1 506 164Z" fill="#dca500"/>
+                                    <path d="M506 146 A74 38 0 0 1 654 146 V166 A74 38 0 0 1 506 166Z" fill="#f6c400"/>
+                                    <ellipse cx="580" cy="146" rx="74" ry="38" fill="#ffd22c"/>
+                                    <ellipse cx="580" cy="146" rx="57" ry="27" fill="#000"/>
+                                    <path d="M518 158 Q526 168 543 174" fill="none" stroke="#ffe77c" stroke-width="7" stroke-linecap="round"/>
+
+                                    <rect x="557" y="85" width="46" height="68" rx="13" fill="#9e9f9d"/>
+                                    <path d="M581 88 Q598 92 598 105 V145 Q598 153 589 153 H581Z" fill="#8b8d8b" opacity=".7"/>
+                                    <g class="valve-stem">
+                                        <rect x="571" y="53" width="18" height="43" rx="5" fill="#a3a5a3"/>
+                                        <path d="M571 64 Q585 69 585 79 V94 H571Z" fill="#8d8f8d"/>
+                                    </g>
+                                    <g class="valve-button">
+                                        <path d="M507 53 A73 35 0 0 0 653 53 V66 A73 35 0 0 1 507 66Z" fill="#bdbdbb"/>
+                                        <ellipse cx="580" cy="53" rx="73" ry="35" fill="url(#valveCap)"/>
+                                        <path d="M519 63 Q530 77 549 80" fill="none" stroke="#f4f3f1" stroke-width="8" stroke-linecap="round"/>
+                                    </g>
+                                </g>
+                            </g>
+                        </svg>
+                    </div>
+                </div>
+
+                <div class="actions">
+                    <button class="secondary" id="undoButton">Undo Last Note</button>
+                    <button class="red wavy nextButton">Go Back</button>
+                </div>
+            </section>
+
+            <section class="panel hidden" id="results">
+                <h2 id="resultTitle">Results</h2>
+                <p id="score"></p>
+                <div id="resultDetails"></div>
+
+                <div class="actions">
+                    <button class="secondary" id="retryButton">Try Again</button>
+                    <button class="primary text-opposed-color" id="nextscaleButton">Next Scale</button>
+                    <button class="red wavy nextButton">Go Back</button>
+                </div>
+            </section>
+            
+            <footer class="app-footer">
+                <span>
+                    &copy; <span id="copyrightYear"></span> Braden Wood. All rights reserved.<br>
+                    Unauthorized copying, redistribution, or reuse is prohibited.
+                </span>
+            </footer>
+
+            <p id="error"></p>
+            
+            <div class="settings-overlay hidden" id="settingsOverlay" aria-hidden="true">
+                <section class="settings-modal" role="dialog" aria-modal="true" aria-labelledby="settingsTitle">
+                    <header class="settings-header">
+                        <div>
+                            <h2 id="settingsTitle">Settings</h2>
+                            <p class="muted">Customize your scale practice.</p>
+                        </div>
+                        <button type="button" class="settings-close" id="closeSettingsButton" aria-label="Close settings">&times;</button>
+                    </header>
+
+                    <div class="settings-content">
+                        <section class="settings-section settings-theme-section">
+                            <h3>Appearance</h3>
+                            <label class="theme-setting" for="themeSelect">
+                                <select id="themeSelect">
+                                    <option value="dark">Dark</option>
+                                    <option value="light">Light</option>
+                                </select>
+                            </label>
+                        </section>
+
+                        <section class="settings-section">
+                            <h3>Note input</h3>
+                            <label class="theme-setting toggle-setting" for="valveInputToggle">
+                                <span>Enter notes with trumpet valves instead of note buttons</span>
+                                <input type="checkbox" id="valveInputToggle">
+                            </label>
+                        </section>
+
+                        <section class="settings-section">
+                            <h3>Fingerings</h3>
+                            <label class="theme-setting toggle-setting" for="fingeringToggle">
+                                <span>Show trumpet fingerings under each note</span>
+                                <input type="checkbox" id="fingeringToggle">
+                            </label>
+                        </section>
+
+                        <section class="settings-section">
+                            <h3>Staff</h3>
+                            <label class="theme-setting toggle-setting" for="keySignatureToggle">
+                                <span>Show key signature (off shows accidentals on each note)</span>
+                                <input type="checkbox" id="keySignatureToggle">
+                            </label>
+                        </section>
+
+                        <section class="settings-section">
+                            <h3>Scales</h3>
+                            <p class="muted">Uncheck a key, range, or scale type to hide it from practice.</p>
+
+                            <h4 class="filter-heading">Modes</h4>
+                            <div id="scaleTypeFilters" class="scale-type-filters"></div>
+
+                            <h4 class="filter-heading">Ranges</h4>
+                            <div id="scaleRangeFilters" class="scale-type-filters"></div>
+
+                            <h4 class="filter-heading">Individual scales</h4>
+                            <div id="scaleSettingsTree" class="scale-settings-tree"></div>
+                        </section>
+                    </div>
+
+                    <footer class="settings-footer">
+                        <button type="button" class="secondary" id="resetSettingsButton">Reset Settings</button>
+                        <button type="button" class="primary text-opposed-color" id="doneSettingsButton">Done</button>
+                    </footer>
+                </section>
+            </div>
+        </main>
+
+        <script src="../script.js"></script>
+    </body>
+</html>

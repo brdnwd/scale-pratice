@@ -4,19 +4,20 @@
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <link rel="icon" href="./icons/icon.png">
-        <title>Musically Trompette</title>
+        <title>TrompetteLabs</title>
         <link rel="stylesheet" href="./style.css">
         <link rel="manifest" href="./manifest.json">
     </head>
     <body>
         <main>
             <header class="home-header">
-                <h1>Musically Trompette</h1>
+                <img src="/icons/icon.png">
+                <h1>TrompetteLabs</h1>
                 <p>Practice your scales, strengthen your musical knowledge, and build confidence on trumpet.</p>
             </header>
 
             <section class="activity-cards" aria-label="Practice activities">
-                <a href="/scales-test/" class="activity-card">
+                <a href="/scales-builder/" class="activity-card">
                     <div class="activity-card-icon" aria-hidden="true">
                         <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
                             <path d="M9 18V5l12-2v13" />
@@ -25,7 +26,7 @@
                         </svg>
                     </div>
                     <div class="activity-card-content">
-                        <h2>Scale Builder</h2>
+                        <h2>Scales Builder</h2>
                         <p>Build scales one note at a time. Choose a key, scale, and range, then test your knowledge of the notes and fingerings.</p>
                     </div>
                     <svg class="activity-card-arrow" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
@@ -49,6 +50,24 @@
                     <div class="activity-card-content">
                         <h2>Scale Identification</h2>
                         <p>Look at a sequence of notes and identify the scale. Practice recognizing scale patterns and key signatures.</p>
+                    </div>
+                    <svg class="activity-card-arrow" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <path d="M5 12h14" />
+                        <path d="m12 5 7 7-7 7" />
+                    </svg>
+                </a>
+
+                <a href="/scale-tempo-practice/" class="activity-card disabled" aria-disabled="true" tabindex="-1">
+                    <div class="activity-card-icon" aria-hidden="true">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+                            <circle cx="12" cy="12" r="9" />
+                            <path d="M12 7v5l3 2" />
+                            <path d="M8 2h8" />
+                        </svg>
+                    </div>
+                    <div class="activity-card-content">
+                        <h2>Scale Tempo Practice</h2>
+                        <p>Practice scales at your own pace using your keyboard. Set a tempo, follow the beat, and build speed, accuracy, and consistency.</p>
                     </div>
                     <svg class="activity-card-arrow" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                         <path d="M5 12h14" />
@@ -96,7 +115,10 @@
             </section>
 
             <footer class="app-footer">
-                <span>&copy; <span id="copyrightYear"></span> Braden Wood</span>
+                <span>
+                    &copy; <span id="copyrightYear"></span> Braden Wood. All rights reserved.<br>
+                    Unauthorized copying, redistribution, or reuse is prohibited.
+                </span>
             </footer>
         </main>
 

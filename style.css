@@ -1,3 +1,8 @@
+/* =========================================================
+   1. Theme variables
+   ========================================================= */
+
+@import url("./font.ttf");
 
 :root {
     color-scheme: dark;
@@ -18,7 +23,7 @@
     --color-background-secondary-hover: #484848;
     --color-background-correct: #1d3827;
     --color-background-wrong: #421f1f;
-    --color-background-green: #ffffff;
+    --color-background-green: #fff;
     --color-background-green-hover: #e8e8e8;
     --color-background-red: #421f1f;
     --color-background-red-hover: #582828;
@@ -30,7 +35,7 @@
     --color-text-secondary: #aaa;
     --color-text-label: #bbb;
 
-    /* Borders */
+    /* Borders and dividers */
     --color-border: #333;
     --color-border-input: #444;
     --color-border-hover: #777;
@@ -38,18 +43,18 @@
     --color-border-secondary: #555;
     --color-border-correct: #438c5a;
     --color-border-wrong: #a94a4a;
-    --color-border-green: #cccccc;
+    --color-border-green: #ccc;
     --color-border-red: #a94a4a;
 
     /* Accents and status */
     --color-accent: #70d99a;
     --color-error: #ff8585;
-    --color-green: #000000;
+    --color-green: #000;
     --color-red: #ff8585;
     --color-fingerings: rgb(224, 224, 224);
 
-    /* Staff, effects, and scrollbar */
-    --wavy-color: rgba(0, 0, 0, 0.25);
+    /* Staff, effects and scrollbar */
+    --wavy-color: rgb(0 0 0 / 25%);
     --color-staff-line: #777;
     --color-staff-ledger: #aaa;
     --color-scrollbar-thumb: #555;
@@ -61,13 +66,12 @@
 
     /* Backgrounds */
     --color-background: #f4f5f4;
-    --color-background-panel: #ffffff;
-    --color-background-input: #ffffff;
+    --color-background-panel: #fff;
+    --color-background-input: #fff;
     --color-background-hover: #e9ece9;
     --color-background-staff: #fafafa;
     --color-background-progress: #e2e5e2;
     --color-background-chip: #edf0ed;
-    --color-text-opposed: #f3f8f3;
 
     /* Buttons */
     --color-background-primary: #245b3a;
@@ -76,10 +80,11 @@
     --color-background-secondary-hover: #d8ddd8;
     --color-background-correct: #e2f3e7;
     --color-background-wrong: #fbe8e8;
-    --color-background-green: #ffffff;
+    --color-background-green: #fff;
     --color-background-green-hover: #e8e8e8;
     --color-background-red: #fbe8e8;
     --color-background-red-hover: #f5d4d4;
+    --color-text-opposed: #f3f8f3;
 
     /* Text */
     --color-text: #222722;
@@ -87,7 +92,7 @@
     --color-text-secondary: #555d55;
     --color-text-label: #222722;
 
-    /* Borders */
+    /* Borders and dividers */
     --color-border: #dfe3df;
     --color-border-input: #cbd1cb;
     --color-border-hover: #929b92;
@@ -95,7 +100,7 @@
     --color-border-secondary: #c4cbc4;
     --color-border-correct: #438c5a;
     --color-border-wrong: #c65b5b;
-    --color-border-green: #cccccc;
+    --color-border-green: #ccc;
     --color-border-red: #c65b5b;
 
     /* Accents and status */
@@ -103,17 +108,19 @@
     --color-error: #c62828;
     --color-green: #00000036;
     --color-red: #c62828;
-    --color-fingerings: rgb(0, 0, 0);
+    --color-fingerings: #000;
 
-    /* Staff, effects, and scrollbar */
-    --wavy-color: rgba(255, 255, 255, 0.37);
+    /* Staff, effects and scrollbar */
+    --wavy-color: rgb(255 255 255 / 37%);
     --color-staff-line: #929992;
     --color-staff-ledger: #606860;
     --color-scrollbar-thumb: #b5bcb5;
     --color-scrollbar-track: #edf0ed;
 }
 
-/* Base layout */
+/* =========================================================
+   2. Base layout and typography
+   ========================================================= */
 
 * {
     box-sizing: border-box;
@@ -125,14 +132,14 @@ body {
     padding: 32px 16px;
     background: var(--color-background);
     color: var(--color-text);
-    font-family: Arial, sans-serif;
+    font-family: "Google Sans", sans-serif !important;
 }
 
 main {
     width: 100%;
     max-width: 760px;
-    padding-bottom: 0px;
     margin: auto;
+    padding-bottom: 30px;
 }
 
 h1 {
@@ -164,7 +171,9 @@ label {
     color: var(--color-text-muted);
 }
 
-/* Panels and form controls */
+/* =========================================================
+   3. Panels and shared dividers
+   ========================================================= */
 
 .panel {
     margin: 20px 0;
@@ -174,11 +183,40 @@ label {
     border-radius: 12px;
 }
 
+/*
+ * Shared panel footer.
+ * Action rows sit inside the panel's outer edges, while the
+ * separator extends across the entire inner panel width.
+ */
+.panel>.actions {
+    position: relative;
+    z-index: 2;
+    display: flex;
+    flex: 0 0 auto;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin: 20px -22px -22px;
+    padding: 12px 22px;
+    background: var(--color-background-panel);
+    border-top: 1px solid var(--color-border);
+    border-radius: 0 0 11px 11px;
+}
+
+/* Keep panel footers aligned with the panel's bottom edge. */
+.panel>.actions button {
+    flex: 1 1 0;
+    min-width: 0;
+}
+
 .settings {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
     gap: 16px;
 }
+
+/* =========================================================
+   4. Buttons, inputs and controls
+   ========================================================= */
 
 select,
 button {
@@ -192,7 +230,9 @@ button {
 
 button {
     cursor: pointer;
-    transition: background 0.15s, border-color 0.15s;
+    transition:
+        background 0.15s,
+        border-color 0.15s;
 }
 
 button:hover {
@@ -226,12 +266,12 @@ button:disabled {
 .green {
     background: var(--color-background-green);
     border-color: var(--color-border-green);
-    color: #000000;
+    color: #000;
 }
 
 .green:hover {
     background: var(--color-background-green-hover);
-    color: #000000;
+    color: #000;
 }
 
 .red {
@@ -243,8 +283,6 @@ button:disabled {
 .red:hover {
     background: var(--color-background-red-hover);
 }
-
-/* Text buttons and footer */
 
 .text-button {
     padding: 6px 0;
@@ -262,16 +300,115 @@ button:disabled {
     color: var(--color-text-secondary);
 }
 
-.app-footer {
+
+/* =========================================================
+   Navigation bar
+   ========================================================= */
+
+.navbar {
+    position: sticky;
+    top: 0;
+    z-index: 100;
     display: flex;
     align-items: center;
     justify-content: space-between;
+    gap: 12px;
+    width: 100%;
+    margin-bottom: 20px;
+    padding: 8px 0;
+    background: var(--color-background);
+}
+
+.navbar-link {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    min-height: 44px;
+    padding: 10px 12px;
+    color: var(--color-text);
+    border: 1px solid var(--color-border, #383838);
+    border-radius: 8px;
+    font-size: 0.95rem;
+    font-weight: 500;
+    text-decoration: none;
+    transition: background 0.2s ease, border-color 0.2s ease;
+}
+
+.navbar-link:hover {
+    background: var(--color-background-hover);
+    border-color: var(--color-text-muted, #666);
+}
+
+.navbar-link svg {
+    display: block;
+    width: 22px;
+    height: 22px;
+    flex-shrink: 0;
+}
+
+#settingsButton {
+    margin-left: auto;
+}
+
+/* =========================================================
+   Mobile navigation
+   ========================================================= */
+
+@media (max-width: 480px) {
+    .navbar {
+        top: 0;
+        width: calc(100% + 24px);
+        margin: -20px -12px 20px;
+        padding: 8px 12px;
+        background: var(--color-background-panel);
+        border: none;
+        border-bottom: 1px solid var(--color-border);
+        border-radius: 0;
+        box-shadow: 0 4px 16px rgb(0 0 0 / 12%);
+    }
+
+    .navbar-link {
+        min-height: 44px;
+        padding: 0px;
+        font-size: 0.9rem;
+        border: none;
+    }
+
+    #settingsButton {
+        width: 44px;
+        min-width: 44px;
+        padding: 10px;
+    }
+
+    #settingsButton span {
+        display: none;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .navbar-link {
+        transition: none;
+    }
+}
+
+/* =========================================================
+   5. Footer
+   ========================================================= */
+
+.app-footer {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
     gap: 16px;
     color: var(--color-text-muted);
     font-size: 13px;
 }
 
-/* Wavy loading effect */
+/* =========================================================
+   6. Loading effects and progress
+   ========================================================= */
 
 .wavy {
     position: relative;
@@ -281,16 +418,14 @@ button:disabled {
 
 .wavy::after,
 .progress-bar::after {
-    content: "";
     position: absolute;
     inset: 0;
-    background: linear-gradient(
-        110deg,
-        transparent 20%,
-        var(--wavy-color) 50%,
-        transparent 80%
-    );
+    background: linear-gradient(110deg,
+            transparent 20%,
+            var(--wavy-color) 50%,
+            transparent 80%);
     background-size: 200% 100%;
+    content: "";
     animation: progress-wave 1.8s ease-in-out infinite;
     pointer-events: none;
 }
@@ -309,14 +444,10 @@ button:disabled {
     }
 }
 
-/* Progress bar */
-
 .progress {
     height: 6px;
-    margin: 18px 0;
     overflow: hidden;
     background: var(--color-background-progress);
-    border-radius: 8px;
 }
 
 .progress-bar {
@@ -325,11 +456,12 @@ button:disabled {
     height: 100%;
     overflow: hidden;
     background: var(--color-accent);
-    border-radius: 8px;
     transition: width 0.6s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
-/* Question and note selection */
+/* =========================================================
+   7. Scale questions and note selection
+   ========================================================= */
 
 .note-display {
     margin: 24px 0;
@@ -355,9 +487,15 @@ button:disabled {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(90px, 1fr));
     gap: 9px;
+    margin-bottom: 20px;
 }
 
 .note-button {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
     min-height: 52px;
     font-size: 17px;
     font-weight: bold;
@@ -366,63 +504,6 @@ button:disabled {
 .note-button.selected {
     background: var(--color-background-primary);
     border-color: var(--color-accent);
-}
-
-/* Note buttons with fingering diagrams */
-
-.note-button {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: 4px;
-}
-
-.fingering {
-    display: block;
-    width: 54px;
-    height: 22px;
-    overflow: visible;
-    color: var(--color-fingerings);
-    transition: opacity 0.25s ease;
-}
-
-.note-grid:not(.show-fingerings) .fingering {
-    display: none;
-}
-
-.fingering .valve {
-    fill: transparent;
-    stroke: currentColor;
-    stroke-width: 1.4;
-    stroke-linejoin: round;
-    transform: translateY(-2px);
-    transition: fill 0.25s ease, transform 0.25s ease;
-}
-
-.fingering .valve.pressed {
-    fill: currentColor;
-    transform: translateY(2px);
-}
-
-.fingering.unknown {
-    opacity: 0.25;
-}
-
-/* Checkbox row in settings */
-
-.theme-setting input[type="checkbox"] {
-    flex: 0 0 auto;
-    width: 18px;
-    height: 18px;
-    margin: 0;
-    accent-color: var(--color-accent);
-    cursor: pointer;
-}
-
-.theme-setting.toggle-setting {
-    flex-direction: row;
-    align-items: center;
 }
 
 .selected-notes {
@@ -454,6 +535,47 @@ button:disabled {
     border-color: var(--color-border-wrong);
 }
 
+/* =========================================================
+   8. Fingering diagrams
+   ========================================================= */
+
+.fingering {
+    display: block;
+    width: 54px;
+    height: 22px;
+    overflow: visible;
+    color: var(--color-fingerings);
+    transition: opacity 0.25s ease;
+}
+
+.note-grid:not(.show-fingerings) .fingering {
+    display: none;
+}
+
+.fingering .valve {
+    fill: transparent;
+    stroke: currentColor;
+    stroke-width: 1.4;
+    stroke-linejoin: round;
+    transform: translateY(-2px);
+    transition:
+        fill 0.25s ease,
+        transform 0.25s ease;
+}
+
+.fingering .valve.pressed {
+    fill: currentColor;
+    transform: translateY(2px);
+}
+
+.fingering.unknown {
+    opacity: 0.25;
+}
+
+/* =========================================================
+   9. Actions and test results
+   ========================================================= */
+
 .actions {
     display: flex;
     flex-wrap: wrap;
@@ -464,8 +586,6 @@ button:disabled {
 .actions button {
     flex: 1;
 }
-
-/* Test results */
 
 .result-row {
     display: grid;
@@ -500,12 +620,31 @@ button:disabled {
     white-space: pre-wrap;
 }
 
-/* Staff notation */
+/* =========================================================
+   10. Settings checkboxes
+   ========================================================= */
+
+.theme-setting input[type="checkbox"] {
+    flex: 0 0 auto;
+    width: 18px;
+    height: 18px;
+    margin: 0;
+    accent-color: var(--color-accent);
+    cursor: pointer;
+}
+
+.theme-setting.toggle-setting {
+    flex-direction: row;
+    align-items: center;
+}
+
+/* =========================================================
+   11. Staff notation
+   ========================================================= */
 
 .staff-wrapper {
     display: flex;
     flex-direction: column;
-    gap: 1rem;
     width: 100%;
     margin: 12px 0 20px;
     overflow-x: auto;
@@ -577,7 +716,7 @@ button:disabled {
     stroke-width: 1.5;
 }
 
-.staff-note.current + .staff-stem {
+.staff-note.current+.staff-stem {
     stroke: var(--color-accent);
 }
 
@@ -585,7 +724,9 @@ button:disabled {
     display: none;
 }
 
-/* Settings modal */
+/* =========================================================
+   12. Settings modal
+   ========================================================= */
 
 .settings-overlay {
     position: fixed;
@@ -681,7 +822,7 @@ button:disabled {
     padding: 22px 24px;
 }
 
-.settings-section + .settings-section {
+.settings-section+.settings-section {
     margin-top: 28px;
     padding-top: 22px;
     border-top: 1px solid var(--color-border);
@@ -693,7 +834,7 @@ button:disabled {
     font-weight: 600;
 }
 
-.settings-section > p {
+.settings-section>p {
     margin: 0 0 14px;
     font-size: 13px;
     line-height: 1.5;
@@ -734,7 +875,9 @@ button:disabled {
     margin-left: auto;
 }
 
-/* Folder-style scale settings */
+/* =========================================================
+   13. Scale settings tree and filters
+   ========================================================= */
 
 .scale-settings-tree {
     display: flex;
@@ -742,15 +885,6 @@ button:disabled {
     gap: 2px;
     padding: 4px 0;
     font-size: 14px;
-}
-
-/* Global scale type filters */
-
-.scale-type-filters {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-    gap: 8px;
-    margin-bottom: 16px;
 }
 
 .filter-heading {
@@ -762,6 +896,9 @@ button:disabled {
 }
 
 .scale-type-filters {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 8px;
     margin-bottom: 0;
 }
 
@@ -793,11 +930,6 @@ button:disabled {
     cursor: pointer;
 }
 
-.scale-settings-row input:disabled {
-    cursor: not-allowed;
-    opacity: 0.4;
-}
-
 .scale-settings-node {
     min-width: 0;
 }
@@ -823,6 +955,11 @@ button:disabled {
     margin: 0;
     accent-color: var(--color-accent);
     cursor: pointer;
+}
+
+.scale-settings-row input:disabled {
+    cursor: not-allowed;
+    opacity: 0.4;
 }
 
 .scale-settings-row input:indeterminate {
@@ -858,6 +995,39 @@ button:disabled {
     color: var(--color-text);
 }
 
+.keyboard-keys {
+    display: inline-flex;
+    align-items: center;
+    gap: 2px;
+    vertical-align: middle;
+}
+
+.key-icon {
+    display: inline-block;
+    width: 20px;
+    height: 20px;
+    margin: 2px 1px;
+    vertical-align: middle;
+    fill: var(--color-background-secondary);
+    stroke: var(--color-text-muted);
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    flex-shrink: 0;
+}
+
+.key-icon path {
+    fill: none;
+}
+
+.key-icon.key-enter {
+    width: 36px;
+}
+
+.key-icon.key-space {
+    width: 38px;
+}
+
 .settings-folder-icon,
 .settings-file-icon {
     display: inline-flex;
@@ -886,7 +1056,9 @@ button:disabled {
     display: none;
 }
 
-/* Custom dropdowns */
+/* =========================================================
+   14. Custom dropdowns
+   ========================================================= */
 
 .custom-select {
     position: relative;
@@ -918,7 +1090,9 @@ button:disabled {
     font: inherit;
     text-align: left;
     cursor: pointer;
-    transition: border-color 0.18s ease, background 0.18s ease;
+    transition:
+        border-color 0.18s ease,
+        background 0.18s ease;
 }
 
 .custom-select-trigger:hover,
@@ -968,7 +1142,10 @@ button:disabled {
     pointer-events: none;
     transform: translateY(-5px) scale(0.99);
     transform-origin: top center;
-    transition: opacity 0.15s ease, transform 0.15s ease, visibility 0.15s ease;
+    transition:
+        opacity 0.15s ease,
+        transform 0.15s ease,
+        visibility 0.15s ease;
 }
 
 .custom-select.open .custom-select-menu {
@@ -1003,9 +1180,9 @@ button:disabled {
 }
 
 .custom-select-option.selected::after {
-    content: "✓";
     margin-left: auto;
     padding-left: 12px;
+    content: "✓";
 }
 
 .custom-select-option:focus-visible {
@@ -1019,354 +1196,47 @@ button:disabled {
     font-size: 13px;
 }
 
-.custom-select select:disabled + .custom-select-trigger {
+.custom-select select:disabled+.custom-select-trigger {
     opacity: 0.45;
     cursor: not-allowed;
 }
 
-/* Tablet and mobile layouts */
 
-@media (max-width: 726px) {
-    body {
-        padding: 16px 10px;
-        padding-bottom: max(80px, calc(64px + env(safe-area-inset-bottom)));
-    }
 
-    main {
-        padding-bottom: 50px;
-        width: 100%;
-        min-width: 0;
-    }
-
-    h1 {
-        font-size: clamp(24px, 7vw, 32px);
-    }
-
-    .panel {
-        margin: 14px 0;
-        padding: 14px;
-        border-radius: 10px;
-    }
-
-    .settings {
-        grid-template-columns: minmax(0, 1fr);
-        gap: 14px;
-    }
-
-    select,
-    button,
-    .custom-select-trigger {
-        min-height: 44px;
-        font-size: 16px;
-    }
-
-    .actions {
-        display: flex;
-        flex-direction: column;
-        gap: 8px;
-    }
-
-    .actions button {
-        flex: 1 1 calc(50% - 8px);
-        min-width: 0;
-    }
-
-    .note-grid {
-        grid-template-columns: repeat(3, minmax(0, 1fr));
-        gap: 8px;
-    }
-
-    .note-button {
-        min-height: 48px;
-        padding: 10px 6px;
-        font-size: 16px;
-    }
-
-    .note-display {
-        margin: 18px 0;
-    }
-
-    .note-display .letter {
-        font-size: clamp(40px, 12vw, 58px);
-    }
-
-    .selected-notes {
-        gap: 6px;
-        margin-top: 14px;
-    }
-
-    .note-chip {
-        padding: 7px 9px;
-        font-size: 13px;
-    }
-
-    .result-row {
-        grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-        gap: 8px;
-        overflow-wrap: anywhere;
-    }
-
-    /* Settings modal becomes a bottom sheet */
-    .settings-overlay {
-        align-items: flex-end;
-        padding: 0;
-    }
-
-    .settings-modal {
-        width: 100%;
-        max-width: none;
-        max-height: 90vh;
-        max-height: 90dvh;
-        padding-bottom: env(safe-area-inset-bottom);
-        border-radius: 16px 16px 0 0;
-    }
-
-    .settings-header {
-        gap: 10px;
-        padding: 16px;
-    }
-
-    .settings-header h2 {
-        font-size: 20px;
-    }
-
-    .settings-content {
-        padding: 16px;
-        -webkit-overflow-scrolling: touch;
-    }
-
-    .settings-footer {
-        flex-wrap: wrap;
-        gap: 8px;
-        padding: 12px 16px;
-    }
-
-    .settings-footer button {
-        min-height: 44px;
-    }
-
-    .theme-setting {
-        align-items: flex-start;
-        flex-direction: column;
-        gap: 8px;
-    }
-
-    .theme-setting .custom-select,
-    .theme-setting select {
-        width: 100%;
-    }
-
-    .scale-settings-row {
-        min-height: 42px;
-        gap: 8px;
-        padding: 5px 4px;
-    }
-
-    .scale-settings-children {
-        margin-left: 12px;
-        padding-left: 8px;
-    }
-
-    .custom-select-menu {
-        max-width: calc(100vw - 16px);
-        -webkit-overflow-scrolling: touch;
-        overscroll-behavior: contain;
-    }
-
-    .custom-select-option {
-        min-height: 44px;
-    }
-
-    .staff-wrapper {
-        max-width: 100%;
-        -webkit-overflow-scrolling: touch;
-        overscroll-behavior-x: contain;
-    }
-
-    #scaleStaff {
-        width: 500px;
-        min-width: 500px;
-        max-width: none;
-    }
-
-    /* Fixed footer navigation */
-    .app-footer {
-        position: fixed;
-        right: 0;
-        bottom: 0;
-        left: 0;
-        z-index: 100;
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        gap: 12px;
-        margin: 0;
-        padding: 12px 16px max(12px, env(safe-area-inset-bottom));
-        background: var(--color-background-panel);
-        border-top: 1px solid var(--color-border);
-        font-size: 12px;
-    }
-
-    .app-footer .text-button {
-        padding: 6px 0;
-        white-space: nowrap;
-    }
-}
-
-/* Smaller phones */
-
-@media (max-width: 480px) {
-    #scaleStaff {
-        min-width: 500px;
-    }
-
-    body {
-        padding: 20px 12px;
-    }
-
-    .panel {
-        padding: 16px;
-    }
-}
-
-@media (max-width: 360px) {
-    body {
-        padding-right: 8px;
-        padding-left: 8px;
-    }
-
-    .panel {
-        padding: 12px;
-    }
-
-    .note-grid {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-    }
-
-    .actions button {
-        flex-basis: 100%;
-    }
-
-    .settings-footer {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-    }
-
-    .settings-footer #doneSettingsButton {
-        grid-column: 1 / -1;
-        margin-left: 0;
-    }
-}
-
-/* Compact settings layout on narrow screens */
-
-@media (max-width: 600px) {
-    .settings-header {
-        padding: 18px;
-    }
-
-    .settings-content {
-        padding: 18px;
-    }
-
-    .settings-footer {
-        padding: 14px 18px;
-    }
-
-    .scale-settings-row {
-        min-height: 38px;
-    }
-}
-
-/* Touchscreen improvements */
-
-@media (hover: none) and (pointer: coarse) {
-    button,
-    .custom-select-trigger,
-    .scale-settings-toggle {
-        -webkit-tap-highlight-color: transparent;
-    }
-}
-
-/* Accessibility: respect reduced-motion preferences */
-
-@media (prefers-reduced-motion: reduce) {
-    *,
-    *::before,
-    *::after {
-        scroll-behavior: auto !important;
-        animation-duration: 0.01ms !important;
-        animation-iteration-count: 1 !important;
-        transition-duration: 0.01ms !important;
-    }
-}
-
-.error-page {
-    display: flex;
-    flex-direction: column;
-    align-items: flex-start;
-    justify-content: center;
-    min-height: 75vh;
-}
-
-.error-code {
-    font-size: clamp(6rem, 20vw, 10rem);
-    font-weight: 900;
-    line-height: 1;
-    letter-spacing: -0.08em;
-    opacity: 0.15;
-}
-
-.error-page h1 {
-    margin: 16px 0 8px;
-    font-size: clamp(1.75rem, 5vw, 2.5rem);
-}
-
-.error-page p {
-    max-width: 420px;
-    line-height: 1.6;
-    opacity: 0.7;
-}
-
-.error-home {
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    margin-top: 20px;
-    text-decoration: none;
-}
-
-.error-home svg {
-    transition: transform 180ms ease;
-}
-
-.error-home:hover svg {
-    transform: translateX(-4px);
-}
-
-.activity-card.disabled {
-    opacity: 0.45;
-    pointer-events: none;
-    cursor: not-allowed;
-    transform: none;
-}
-
-.activity-card.disabled:hover {
-    background: #222;
-    border-color: #353535;
-}
-
-.activity-card.disabled .activity-card-arrow {
-    opacity: 0;
-}
+/* =========================================================
+   15. Home page and activity cards
+   ========================================================= */
 
 .home-header {
-    margin-top: 32px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: 12px;
+    padding: 48px 24px 36px;
+}
+
+.home-header img {
+    width: 76px;
+    height: 76px;
+    object-fit: contain;
+    margin-bottom: 4px;
+}
+
+.home-header h1 {
+    margin: 0;
+    font-size: clamp(2rem, 5vw, 3rem);
+    font-weight: 750;
+    letter-spacing: -0.04em;
+    line-height: 1.1;
 }
 
 .home-header p {
-    max-width: 560px;
-    line-height: 1.6;
+    max-width: 460px;
+    margin: 0;
+    font-size: 1rem;
+    line-height: 1.7;
+    color: var(--text-secondary, #777);
 }
 
 .activity-cards {
@@ -1412,8 +1282,8 @@ button:disabled {
     justify-content: center;
     width: 56px;
     height: 56px;
-    border-radius: 10px;
     background: #303030;
+    border-radius: 10px;
 }
 
 .activity-card-content h2 {
@@ -1422,8 +1292,8 @@ button:disabled {
 }
 
 .activity-card-content p {
-    margin: 0;
     max-width: 420px;
+    margin: 0;
     line-height: 1.6;
     opacity: 0.72;
 }
@@ -1433,7 +1303,9 @@ button:disabled {
     right: 24px;
     bottom: 24px;
     opacity: 0.65;
-    transition: transform 180ms ease, opacity 180ms ease;
+    transition:
+        transform 180ms ease,
+        opacity 180ms ease;
 }
 
 .activity-card:hover .activity-card-arrow {
@@ -1441,7 +1313,386 @@ button:disabled {
     transform: translateX(4px);
 }
 
-@media (max-width: 640px) {
+.activity-card.disabled {
+    opacity: 0.45;
+    pointer-events: none;
+    cursor: not-allowed;
+    transform: none;
+}
+
+.activity-card.disabled:hover {
+    background: #222;
+    border-color: #353535;
+}
+
+.activity-card.disabled .activity-card-arrow {
+    opacity: 0;
+}
+
+/* =========================================================
+   16. Trumpet valve picker
+   ========================================================= */
+
+.valve-picker {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+}
+
+.trumpet-valves {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    max-width: none;
+}
+
+#trumpetValves {
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    display: block;
+    width: min(100%, 760px);
+    touch-action: none;
+    user-select: none;
+    -webkit-user-select: none;
+    transform: translateX(-50%);
+    overflow: visible;
+}
+
+.valve {
+    outline: none;
+}
+
+.valve-hit {
+    fill: transparent;
+    stroke: transparent;
+    stroke-width: 3;
+}
+
+.valve:focus-visible .valve-hit {
+    stroke: var(--color-accent);
+}
+
+.valve-moving {
+    transition: filter 0.12s ease;
+}
+
+.valve:hover .valve-moving {
+    filter: brightness(1.05);
+}
+
+.valve-stem,
+.valve-button {
+    transition: transform 0.12s ease;
+}
+
+.valve.pressed .valve-stem,
+.valve.pressed .valve-button {
+    transform: translateY(28px);
+}
+
+.valve.pressed .valve-moving {
+    filter: brightness(0.92);
+}
+
+.valve-picker .actions {
+    width: 100%;
+    max-width: 300px;
+}
+
+/* =========================================================
+   17. Trumpet test panel
+   ========================================================= */
+
+#test {
+    position: relative;
+}
+
+#test:has(.valve-picker:not(.hidden)) {
+    display: flex;
+    flex-direction: column;
+    min-height: calc(100dvh - 64px);
+    overflow: hidden;
+}
+
+#test>.valve-picker:not(.hidden) {
+    flex: 1 1 auto;
+    min-height: 280px;
+    margin: 0 -22px;
+    overflow: hidden;
+}
+
+/*
+ * The shared panel footer supplies the full-width divider.
+ * Keep the test controls attached to the bottom of the panel.
+ */
+#test>.actions {
+    flex: 0 0 auto;
+    margin-top: 0;
+}
+
+/* =========================================================
+   18. Error page
+   ========================================================= */
+
+.error-page {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: center;
+    min-height: 75vh;
+}
+
+.error-code {
+    font-size: clamp(6rem, 20vw, 10rem);
+    font-weight: 900;
+    line-height: 1;
+    letter-spacing: -0.08em;
+    opacity: 0.15;
+}
+
+.error-page h1 {
+    margin: 16px 0 8px;
+    font-size: clamp(1.75rem, 5vw, 2.5rem);
+}
+
+.error-page p {
+    max-width: 420px;
+    line-height: 1.6;
+    opacity: 0.7;
+}
+
+.error-home {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 20px;
+    text-decoration: none;
+}
+
+.error-home svg {
+    transition: transform 180ms ease;
+}
+
+.error-home:hover svg {
+    transform: translateX(-4px);
+}
+
+/* =========================================================
+   19. Tablet and mobile
+   ========================================================= */
+
+@media (max-width: 726px) {
+    body {
+        padding: 16px 10px;
+        padding-bottom: max(80px, calc(64px + env(safe-area-inset-bottom)));
+    }
+
+    main {
+        width: 100%;
+        min-width: 0;
+    }
+
+    h1 {
+        font-size: clamp(24px, 7vw, 32px);
+    }
+
+    .panel {
+        margin: 14px 0;
+        padding: 14px;
+        border-radius: 10px;
+    }
+
+    /* Extend each panel footer divider to its inner edges. */
+    .panel>.actions {
+        margin-right: -14px;
+        margin-bottom: -14px;
+        margin-left: -14px;
+        padding: 12px 14px;
+        border-radius: 0 0 9px 9px;
+    }
+
+    .settings {
+        grid-template-columns: minmax(0, 1fr);
+        gap: 14px;
+    }
+
+    select,
+    button,
+    .custom-select-trigger {
+        min-height: 44px;
+        font-size: 16px;
+    }
+
+    .actions {
+        gap: 8px;
+        flex-direction: column;
+    }
+
+    .actions button {
+        flex: 1 1 calc(50% - 8px);
+        min-width: 0;
+    }
+
+    .note-grid {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 8px;
+    }
+
+    .note-button {
+        min-height: 48px;
+        padding: 10px 6px;
+        font-size: 16px;
+    }
+
+    .note-display {
+        margin: 18px 0;
+    }
+
+    .note-display .letter {
+        font-size: clamp(40px, 12vw, 58px);
+    }
+
+    .selected-notes {
+        gap: 6px;
+        margin-top: 14px;
+    }
+
+    .note-chip {
+        padding: 7px 9px;
+        font-size: 13px;
+    }
+
+    .result-row {
+        grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+        gap: 8px;
+        overflow-wrap: anywhere;
+    }
+
+    /* Settings modal becomes a bottom sheet. */
+    .settings-overlay {
+        align-items: flex-end;
+        padding: 0;
+    }
+
+    .settings-modal {
+        width: 100%;
+        max-width: none;
+        max-height: 90vh;
+        max-height: 90dvh;
+        padding-bottom: env(safe-area-inset-bottom);
+        border-radius: 16px 16px 0 0;
+    }
+
+    .settings-header {
+        gap: 10px;
+        padding: 18px;
+    }
+
+    .settings-header h2 {
+        font-size: 20px;
+    }
+
+    .settings-content {
+        padding: 18px;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    .settings-footer {
+        flex-wrap: wrap;
+        gap: 8px;
+        padding: 14px 18px;
+    }
+
+    .settings-footer button {
+        min-height: 44px;
+    }
+
+    .theme-setting {
+        align-items: flex-start;
+        flex-direction: column;
+        gap: 8px;
+    }
+
+    .theme-setting .custom-select,
+    .theme-setting select {
+        width: 100%;
+    }
+
+    .scale-settings-row {
+        min-height: 38px;
+        gap: 8px;
+        padding: 5px 4px;
+    }
+
+    .scale-settings-children {
+        margin-left: 12px;
+        padding-left: 8px;
+    }
+
+    .custom-select-menu {
+        max-width: calc(100vw - 16px);
+        -webkit-overflow-scrolling: touch;
+        overscroll-behavior: contain;
+    }
+
+    .custom-select-option {
+        min-height: 44px;
+    }
+
+    .staff-wrapper {
+        max-width: 100%;
+        -webkit-overflow-scrolling: touch;
+        overscroll-behavior-x: contain;
+    }
+
+    #scaleStaff {
+        width: 500px;
+        min-width: 500px;
+        max-width: none;
+    }
+
+    /* Fixed footer navigation. */
+    .app-footer {
+        position: fixed;
+        right: 0;
+        bottom: 0;
+        left: 0;
+        z-index: 100;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        gap: 12px;
+        margin: 0;
+        padding: 12px 16px max(12px, env(safe-area-inset-bottom));
+        background: var(--color-background-panel);
+        border-top: 1px solid var(--color-border);
+        font-size: 12px;
+    }
+
+    /* Trumpet test panel. */
+    #test:has(.valve-picker:not(.hidden)) {
+        min-height: calc(100dvh - 32px);
+    }
+
+    #test>.valve-picker:not(.hidden) {
+        margin-right: -14px;
+        margin-left: -14px;
+    }
+
+    #test>.actions {
+        margin-right: -14px;
+        margin-bottom: -14px;
+        margin-left: -14px;
+        padding: 12px 14px;
+    }
+
+    /* Home page cards. */
     .activity-cards {
         grid-template-columns: 1fr;
         gap: 14px;
@@ -1453,7 +1704,119 @@ button:disabled {
     }
 }
 
+/* =========================================================
+   20. Small phones
+   ========================================================= */
+
+@media (max-width: 480px) {
+    #scaleStaff {
+        min-width: 500px;
+    }
+
+    body {
+        padding: 20px 12px;
+    }
+
+    .panel {
+        padding: 16px;
+    }
+
+    .panel>.actions {
+        margin-right: -16px;
+        margin-bottom: -16px;
+        margin-left: -16px;
+        padding: 12px 16px;
+    }
+
+    #test>.valve-picker:not(.hidden) {
+        margin-right: -16px;
+        margin-left: -16px;
+    }
+
+    #test>.actions {
+        margin-right: -16px;
+        margin-bottom: -16px;
+        margin-left: -16px;
+        padding: 12px 16px;
+    }
+}
+
+@media (max-width: 360px) {
+    body {
+        padding-right: 8px;
+        padding-left: 8px;
+    }
+
+    .panel {
+        padding: 12px;
+    }
+
+    .panel>.actions {
+        margin-right: -12px;
+        margin-bottom: -12px;
+        margin-left: -12px;
+        padding: 12px;
+    }
+
+    #test>.valve-picker:not(.hidden) {
+        margin-right: -12px;
+        margin-left: -12px;
+    }
+
+    #test>.actions {
+        margin-right: -12px;
+        margin-bottom: -12px;
+        margin-left: -12px;
+        padding: 12px;
+    }
+
+    .note-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .actions button {
+        flex-basis: 100%;
+    }
+
+    .settings-footer {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+    }
+
+    .settings-footer #doneSettingsButton {
+        grid-column: 1 / -1;
+        margin-left: 0;
+    }
+}
+
+/* =========================================================
+   21. Touchscreen improvements
+   ========================================================= */
+
+@media (hover: none) and (pointer: coarse) {
+
+    button,
+    .custom-select-trigger,
+    .scale-settings-toggle {
+        -webkit-tap-highlight-color: transparent;
+    }
+}
+
+/* =========================================================
+   22. Reduced motion
+   ========================================================= */
+
 @media (prefers-reduced-motion: reduce) {
+
+    *,
+    *::before,
+    *::after {
+        scroll-behavior: auto !important;
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+    }
+
     .activity-card,
     .activity-card-arrow {
         transition: none;

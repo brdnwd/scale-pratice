@@ -1,6 +1,10 @@
 (async () => {
     "use strict";
 
+    const isMobile = window.matchMedia(
+        "(max-width: 768px), (hover: none) and (pointer: coarse)"
+    ).matches;
+
     // DOM elements
     const $ = id => document.getElementById(id);
 
@@ -14,21 +18,36 @@
     const test = $("test");
     const results = $("results");
     const noteChoices = $("noteChoices");
-    const selectedNotes = $("selectedNotes");
+
+    const valvePicker = $("valvePicker");
+    const trumpetValves = $("trumpetValves");
+    const valveElements = trumpetValves
+        ? [...trumpetValves.querySelectorAll(".valve")]
+        : [];
+    const placeNoteButton = $("placeNoteButton");
 
     const settingsButton = $("settingsButton");
     const settingsOverlay = $("settingsOverlay");
     const scaleSettingsTree = $("scaleSettingsTree");
     const themeSelect = $("themeSelect");
     const fingeringToggle = $("fingeringToggle");
+    const valveInputToggle = $("valveInputToggle");
     const keySignatureToggle = $("keySignatureToggle");
     const scaleTypeFilters = $("scaleTypeFilters");
     const scaleRangeFilters = $("scaleRangeFilters");
+
+    if (isMobile) {
+        $("fingeringSettings")?.remove();
+        $("valveInputSettings")?.remove();
+        valvePicker?.remove();
+        noteChoices?.classList.remove("show-fingerings");
+    }
 
     // Storage keys
     const HIDDEN_SCALES_KEY = "scalePracticeHiddenScales";
     const THEME_KEY = "scalePracticeTheme";
     const FINGERING_KEY = "scalePracticeShowFingerings";
+    const VALVE_INPUT_KEY = "scalePracticeValveInput";
     const KEY_SIGNATURE_KEY = "scalePracticeShowKeySignature";
 
     // Test state
@@ -43,8 +62,10 @@
     let customDropdowns = null;
     let savedDirection = null;
     let showFingerings = true;
+    let useValveInput = false;
     let expectedMidis = [];
     let showKeySignature = true;
+    let randomScaleMode = false;
 
     // Note names and notation
     const noteNames = {
@@ -192,6 +213,16 @@
         fingeringToggle.checked = showFingerings;
 
         try {
+            useValveInput = !isMobile &&
+                localStorage.getItem(VALVE_INPUT_KEY) === "true";
+        } catch (error) {
+            useValveInput = false;
+        }
+
+        if (valveInputToggle) valveInputToggle.checked = useValveInput;
+        applyInputMode();
+
+        try {
             showKeySignature = localStorage.getItem(KEY_SIGNATURE_KEY) !== "false";
         } catch (error) {
             showKeySignature = true;
@@ -254,7 +285,16 @@
             console.warn("Could not reset fingering setting:", error);
         }
 
-        updateFingerings();
+        useValveInput = false;
+        if (valveInputToggle) valveInputToggle.checked = false;
+
+        try {
+            localStorage.removeItem(VALVE_INPUT_KEY);
+        } catch (error) {
+            console.warn("Could not reset note input setting:", error);
+        }
+
+        applyInputMode();
 
         showKeySignature = true;
         keySignatureToggle.checked = true;
@@ -1042,10 +1082,13 @@
             notesGroup.append(notehead);
 
             const stem = document.createElementNS(NS, "line");
-            stem.setAttribute("x1", x + 6);
-            stem.setAttribute("x2", x + 6);
+            const stemDown = y < 69;
+            const stemX = x + (stemDown ? -6 : 6);
+
+            stem.setAttribute("x1", stemX);
+            stem.setAttribute("x2", stemX);
             stem.setAttribute("y1", y);
-            stem.setAttribute("y2", y < 69 ? y + 30 : y - 30);
+            stem.setAttribute("y2", y + (stemDown ? 30 : -30));
             stem.setAttribute("class", "staff-stem");
             notesGroup.append(stem);
         });
@@ -1204,16 +1247,12 @@
         if (customDropdowns) customDropdowns.refresh();
     }
 
-    function chooseRandomScale() {
+    function chooseRandomScale(excludeCurrent = false) {
         const options = [];
 
         Object.keys(data.scales).forEach(key => {
-            const ranges = getVisibleRanges(key);
-
-            getScaleTypes(key).forEach(type => {
-                ranges.forEach(range => {
-                    if (!isScaleVisible(key, range, type)) return;
-
+            getVisibleRanges(key).forEach(range => {
+                getVisibleScaleTypes(key, range).forEach(type => {
                     try {
                         const sequence = getScaleSequence(
                             key,
@@ -1236,7 +1275,17 @@
             );
         }
 
-        const choice = options[Math.floor(Math.random() * options.length)];
+        let choices = options;
+
+        if (excludeCurrent && options.length > 1) {
+            choices = options.filter(option =>
+                option.key !== currentKey ||
+                option.range !== currentRange ||
+                option.type !== currentType
+            );
+        }
+
+        const choice = choices[Math.floor(Math.random() * choices.length)];
 
         keySelect.value = choice.key;
         updateRangeOptions();
@@ -1395,7 +1444,6 @@
             svg.append(group);
         });
 
-        
         return svg;
     }
 
@@ -1413,7 +1461,11 @@
             label.className = "note-label";
             label.textContent = displayNote(note);
 
-            button.append(label, createFingeringSvg());
+            button.append(label);
+
+            if (!isMobile) {
+                button.append(createFingeringSvg());
+            }
 
             button.addEventListener("click", () => {
                 if (finished) return;
@@ -1426,6 +1478,8 @@
     }
 
     function updateFingerings() {
+        if (isMobile) return;
+
         noteChoices.classList.toggle("show-fingerings", showFingerings);
 
         const targetMidi = expectedMidis[answers.length];
@@ -1464,6 +1518,225 @@
         }
 
         updateFingerings();
+    }
+
+    // Valve picker (optional note input)
+    const VALVE_KEYS = ["ArrowLeft", "ArrowDown", "ArrowRight"];
+    const SHARP_NAMES = [
+        "c", "c-sharp", "d", "d-sharp", "e", "f",
+        "f-sharp", "g", "g-sharp", "a", "a-sharp", "b"
+    ];
+    const FLAT_NAMES = [
+        "c", "d-flat", "d", "e-flat", "e", "f",
+        "g-flat", "g", "a-flat", "a", "b-flat", "b"
+    ];
+
+    // Reverse lookup: valve combination ("1-2", "" for open) -> every MIDI
+    // pitch that uses it, lowest first.
+    const FINGERING_LOOKUP = new Map();
+
+    Object.entries(FINGERINGS).forEach(([midi, valves]) => {
+        const id = valves.join("-");
+        if (!FINGERING_LOOKUP.has(id)) FINGERING_LOOKUP.set(id, []);
+        FINGERING_LOOKUP.get(id).push(Number(midi));
+    });
+
+    const valveStates = [false, false, false];
+
+    function isPickerActive() {
+        return useValveInput &&
+            !test.classList.contains("hidden") &&
+            !finished &&
+            settingsOverlay.classList.contains("hidden");
+    }
+
+    function getPressedValves() {
+        return [1, 2, 3].filter((_, index) => valveStates[index]);
+    }
+
+    // Names a pitch using flats in flat keys and sharps everywhere else.
+    function spellMidi(midi) {
+        const prefersFlats = getKeySignature(currentKey)
+            .some(note => note.endsWith("-flat"));
+
+        return (prefersFlats ? FLAT_NAMES : SHARP_NAMES)[midi % 12];
+    }
+
+    // Works out which note the current fingering plays. The octave is the
+    // one closest to the note being built, since valves alone don't set it.
+    function resolvePickedNote() {
+        const index = answers.length;
+        const targetMidi = expectedMidis[index];
+        if (targetMidi === undefined) return null;
+
+        const candidates = FINGERING_LOOKUP.get(getPressedValves().join("-"));
+        if (!candidates) return null;
+
+        const midi = candidates.reduce((best, candidate) =>
+            Math.abs(candidate - targetMidi) < Math.abs(best - targetMidi)
+                ? candidate
+                : best
+        );
+
+        const expectedPitchClass =
+            ((noteSemitone(expected[index]) % 12) + 12) % 12;
+        const preview = spellMidi(midi);
+
+        return {
+            midi,
+            preview,
+            // Same pitch as the scale note: keep the scale's spelling (E♯ vs F).
+            note: midi % 12 === expectedPitchClass ? expected[index] : preview
+        };
+    }
+
+    function updatePicker() {
+        if (!useValveInput) return;
+
+        const picked = resolvePickedNote();
+
+        $("noteLetter").textContent = picked ? displayNote(picked.preview) : "?";
+        if (placeNoteButton) placeNoteButton.disabled = !picked;
+    }
+
+    function setValve(index, pressed) {
+        if (!valveElements[index] || valveStates[index] === pressed) return;
+
+        valveStates[index] = pressed;
+        valveElements[index].classList.toggle("pressed", pressed);
+        valveElements[index].setAttribute("aria-pressed", String(pressed));
+        updatePicker();
+    }
+
+    function releaseAllValves() {
+        valveStates.forEach((_, index) => setValve(index, false));
+    }
+
+    function placePickedNote() {
+        if (!isPickerActive()) return;
+
+        const picked = resolvePickedNote();
+        if (!picked) return;
+
+        answers.push(picked.note);
+        renderQuestion();
+    }
+
+    // Shows the note buttons or the valve picker, depending on the setting.
+    function refreshNoteInput() {
+        if (useValveInput) {
+            $("noteInstruction").innerHTML =
+                `
+                    Press the valves down with
+                    <span class="keyboard-keys" aria-label="Arrow keys">
+                        <svg class="key-icon" viewBox="0 0 24 24" aria-label="Left arrow">
+                            <rect x="1" y="1" width="22" height="22" rx="4" />
+                            <path d="M14 7l-5 5 5 5" />
+                        </svg>
+                        <svg class="key-icon" viewBox="0 0 24 24" aria-label="Down arrow">
+                            <rect x="1" y="1" width="22" height="22" rx="4" />
+                            <path d="M7 9l5 5 5-5" />
+                        </svg>
+                        <svg class="key-icon" viewBox="0 0 24 24" aria-label="Right arrow">
+                            <rect x="1" y="1" width="22" height="22" rx="4" />
+                            <path d="M10 7l5 5-5 5" />
+                        </svg>
+                    </span>
+                    <br>
+                    Press
+                    <svg class="key-icon key-enter" viewBox="0 0 40 24" aria-label="Enter">
+                        <rect x="1" y="1" width="38" height="22" rx="4" />
+                        <path d="M9 7v5h19M23 9l5 3-5 3" />
+                    </svg>
+                    or
+                    <svg class="key-icon key-space" viewBox="0 0 48 24" aria-label="Spacebar">
+                        <rect x="1" y="1" width="46" height="22" rx="4" />
+                        <path d="M13 16h22" />
+                    </svg>
+                    to choose the note.
+                
+                `;
+            updatePicker();
+        } else {
+            $("noteInstruction").innerHTML = "Choose the correct note."
+            $("noteLetter").textContent = answers.length
+                ? answers[answers.length - 1]
+                : "?";
+
+            if (!noteChoices.children.length) buildNoteButtons();
+            updateFingerings();
+        }
+    }
+
+    function applyInputMode() {
+        noteChoices.classList.toggle("hidden", useValveInput);
+        if (valvePicker) valvePicker.classList.toggle("hidden", !useValveInput);
+
+        if (!useValveInput) releaseAllValves();
+        if (expected.length && !test.classList.contains("hidden")) refreshNoteInput();
+    }
+
+    function saveValveInputSetting() {
+        if (isMobile) return;
+
+        useValveInput = valveInputToggle.checked;
+
+        try {
+            localStorage.setItem(VALVE_INPUT_KEY, String(useValveInput));
+        } catch (error) {
+            console.warn("Could not save note input setting:", error);
+        }
+
+        applyInputMode();
+    }
+
+    function initValvePicker() {
+        document.addEventListener("keydown", event => {
+            if (!isPickerActive()) return;
+            if (event.target.closest?.("input, textarea, select, [contenteditable=true]")) return;
+
+            const index = VALVE_KEYS.indexOf(event.key);
+
+            if (index !== -1) {
+                event.preventDefault();
+                setValve(index, true);
+                return;
+            }
+
+            const isPlaceKey =
+                event.code === "Space" ||
+                (event.key === "Enter" && !event.target.closest?.("button, a, .valve"));
+
+            if (isPlaceKey) {
+                event.preventDefault();
+                if (!event.repeat) placePickedNote();
+            }
+        });
+
+        document.addEventListener("keyup", event => {
+            const index = VALVE_KEYS.indexOf(event.key);
+            if (index !== -1) setValve(index, false);
+        });
+
+        window.addEventListener("blur", releaseAllValves);
+
+        valveElements.forEach((valve, index) => {
+            valve.addEventListener("keydown", event => {
+                if (event.key !== "Space" && event.key !== " ") return;
+                event.preventDefault();
+                setValve(index, true);
+            });
+
+            valve.addEventListener("keyup", event => {
+                if (event.key === "Space" || event.key === " ") setValve(index, false);
+            });
+        });
+
+        if (placeNoteButton) {
+            // Keep focus off the button so the arrow keys keep working after a click.
+            placeNoteButton.addEventListener("mousedown", event => event.preventDefault());
+            placeNoteButton.addEventListener("click", placePickedNote);
+        }
     }
 
     function saveKeySignatureSetting() {
@@ -1511,6 +1784,7 @@
             answers = [];
             finished = false;
             errorBox.textContent = "";
+            releaseAllValves();
 
             $("testTitle").textContent =
                 displayName(currentKey) + " " +
@@ -1545,37 +1819,12 @@
         $("noteNumber").textContent =
             "Note " + (answers.length + 1) + " of " + expected.length;
 
-        $("noteLetter").textContent = answers.length
-            ? answers[answers.length - 1]
-            : "?";
-
-        $("noteInstruction").textContent = "Choose the note you think belongs here.";
         $("progressBar").style.width = (answers.length / expected.length * 100) + "%";
 
-        if (!noteChoices.children.length) buildNoteButtons();
-        updateFingerings();
+        refreshNoteInput();
 
         $("undoButton").disabled = answers.length === 0;
-        renderSelectedNotes();
         drawStaff();
-    }
-
-    function renderSelectedNotes() {
-        selectedNotes.replaceChildren();
-
-        answers.forEach((note, index) => {
-            const chip = document.createElement("span");
-            chip.className = "note-chip";
-            chip.textContent = (index + 1) + ". " + displayNote(note);
-            selectedNotes.append(chip);
-        });
-
-        if (!answers.length) {
-            const empty = document.createElement("span");
-            empty.className = "muted";
-            empty.textContent = "No notes selected yet.";
-            selectedNotes.append(empty);
-        }
     }
 
     function gradeTest() {
@@ -1654,6 +1903,12 @@
                 throw new Error("No current scale is available to advance from.");
             }
 
+            if (randomScaleMode) {
+                chooseRandomScale(true);
+                startTest();
+                return;
+            }
+
             const options = [];
 
             Object.keys(data.scales).forEach(key => {
@@ -1676,7 +1931,11 @@
                 option.type === currentType
             );
 
-            const next = options[(currentIndex + 1) % options.length];
+            const nextIndex = currentIndex === -1
+                ? 0
+                : (currentIndex + 1) % options.length;
+
+            const next = options[nextIndex];
 
             keySelect.value = next.key;
             updateRangeOptions();
@@ -1687,6 +1946,7 @@
             syncDirectionLock();
 
             if (customDropdowns) customDropdowns.refresh();
+
             startTest();
         } catch (error) {
             test.classList.add("hidden");
@@ -1710,8 +1970,18 @@
 
     rangeSelect.addEventListener("change", updateScaleOptions);
 
-    $("startButton").addEventListener("click", () => startTest());
+    $("startButton").addEventListener("click", () => {
+        randomScaleMode = false;
+        startTest();
+    });
 
+    document.querySelectorAll(".randomButton").forEach(button => {
+        button.addEventListener("click", () => {
+            randomScaleMode = true;
+            startTest(true);
+        });
+    });
+    
     $("undoButton").addEventListener("click", () => {
         if (!finished && answers.length) {
             answers.pop();
@@ -1751,6 +2021,12 @@
     $("retryButton").addEventListener("click", () => startTest());
 
     fingeringToggle.addEventListener("change", saveFingeringSetting);
+
+    if (valveInputToggle) {
+        valveInputToggle.addEventListener("change", saveValveInputSetting);
+    }
+
+    initValvePicker();
 
     keySignatureToggle.addEventListener("change", saveKeySignatureSetting);
 
