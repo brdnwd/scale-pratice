@@ -710,7 +710,7 @@ button:disabled {
 .treble-clef {
     fill: var(--color-text);
     font-family: "Google Sans", sans-serif !important;
-    font-size: clamp(40px, 10vw, 70px);
+    font-size: 70px;
 }
 
 .staff-note {
@@ -724,12 +724,18 @@ button:disabled {
 .staff-accidental {
     fill: var(--color-text);
     font-family: "Google Sans", sans-serif !important;
-    font-size: clamp(10px, 10vw, 20px);
+    font-size: 1.2em;
     font-weight: 400;
     font-variation-settings: normal;
     font-stretch: normal;
     line-height: 1;
     white-space: nowrap;
+}
+
+@media (max-width: 480px) {
+    .treble-clef {
+        font-size: 40px;
+    }
 }
 
 .staff-ledger {
