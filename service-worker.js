@@ -2,7 +2,7 @@
 "use strict";
 
 // Increment this whenever the cached app files need to be refreshed.
-const CACHE_NAME = "scale-practice-v8";
+const CACHE_NAME = "scale-practice-v9";
 
 // Resolve the app's base path from the service worker's location.
 const APP_BASE = new URL("./", self.location.href);
