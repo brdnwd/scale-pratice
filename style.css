@@ -1005,6 +1005,12 @@ button:disabled {
     color: var(--color-text);
 }
 
+.key-signature {
+    font-family: "Google Sans", sans-serif !important;
+    line-height: 1;
+    white-space: nowrap;
+}
+
 .keyboard-keys {
     display: inline-flex;
     align-items: center;

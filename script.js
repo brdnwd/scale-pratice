@@ -14,6 +14,10 @@
     const FINGERING_KEY = "scalePracticeShowFingerings";
     const VALVE_INPUT_KEY = "scalePracticeValveInput";
     const KEY_SIGNATURE_KEY = "scalePracticeShowKeySignature";
+    const SELECTED_KEY_KEY = "scalePracticeSelectedKey";
+    const SELECTED_TYPE_KEY = "scalePracticeSelectedType";
+    const SELECTED_RANGE_KEY = "scalePracticeSelectedRange";
+    const DIRECTION_KEY = "scalePracticeDirection";
 
     // Apply the saved theme before initializing page-specific features.
     const themeSelect = $("themeSelect");
@@ -92,6 +96,7 @@
     if (isMobile) {
         $("fingeringSettings")?.remove();
         $("valveInputSettings")?.remove();
+        $("valveInputToggle").parentElement.parentElement.remove();
         valvePicker?.remove();
         noteChoices?.classList.remove("show-fingerings");
     }
@@ -284,6 +289,16 @@
         if (keySignatureToggle) {
             keySignatureToggle.checked = showKeySignature;
         }
+
+        try {
+            const savedDirection = localStorage.getItem(DIRECTION_KEY);
+
+            if (["ascending", "both"].includes(savedDirection)) {
+                directionSelect.value = savedDirection;
+            }
+        } catch (error) {
+            console.warn("Could not load saved direction:", error);
+        }
     }
 
     function saveHiddenScales() {
@@ -321,68 +336,6 @@
         } catch (error) {
             console.warn("Could not save theme:", error);
         }
-    }
-
-    function resetSettings() {
-        hiddenScales.clear();
-        saveHiddenScales();
-
-        try {
-            localStorage.removeItem(THEME_KEY);
-        } catch (error) {
-            console.warn("Could not reset saved theme:", error);
-        }
-
-        if (themeSelect) {
-            themeSelect.value = "dark";
-        }
-
-        applyTheme("dark");
-
-        showFingerings = true;
-
-        if (fingeringToggle) {
-            fingeringToggle.checked = true;
-        }
-
-        try {
-            localStorage.removeItem(FINGERING_KEY);
-        } catch (error) {
-            console.warn("Could not reset fingering setting:", error);
-        }
-
-        useValveInput = false;
-
-        if (valveInputToggle) {
-            valveInputToggle.checked = false;
-        }
-
-        try {
-            localStorage.removeItem(VALVE_INPUT_KEY);
-        } catch (error) {
-            console.warn("Could not reset note input setting:", error);
-        }
-
-        applyInputMode();
-
-        showKeySignature = true;
-
-        if (keySignatureToggle) {
-            keySignatureToggle.checked = true;
-        }
-
-        try {
-            localStorage.removeItem(KEY_SIGNATURE_KEY);
-        } catch (error) {
-            console.warn("Could not reset key signature setting:", error);
-        }
-
-        if (hasScaleBuilder && data?.scales) {
-            renderScaleSettings();
-            refreshScaleSelectors();
-        }
-
-        if (customDropdowns) customDropdowns.refresh();
     }
 
     // Custom dropdowns
@@ -1305,6 +1258,9 @@
 
     function updateScaleOptions() {
         const key = data.scales[keySelect.value];
+        const previousType = scaleSelect.value ||
+            localStorage.getItem(SELECTED_TYPE_KEY);
+
         scaleSelect.replaceChildren();
 
         if (!key) return;
@@ -1316,7 +1272,17 @@
             scaleSelect.append(option);
         });
 
+        if ([...scaleSelect.options].some(option => option.value === previousType)) {
+            scaleSelect.value = previousType;
+        }
+
         syncDirectionLock();
+
+        try {
+            localStorage.setItem(SELECTED_TYPE_KEY, scaleSelect.value);
+        } catch (error) {
+            console.warn("Could not save scale type:", error);
+        }
     }
 
     function refreshScaleSelectors() {
@@ -1890,7 +1856,10 @@
     // Test flow
     function startTest(randomize = false) {
         try {
-            if (randomize) chooseRandomScale();
+            if (randomize) {
+                $("nextscaleButton").innerHTML = "Continue"
+                chooseRandomScale();
+            }
 
             if (
                 !keySelect.value ||
@@ -1931,7 +1900,8 @@
                     displayName(currentRange) + " · " +
                     (direction === "both" || currentType === "melodic-minor"
                         ? "Ascending and Descending"
-                        : "Ascending Only");
+                        : "Ascending Only") +
+                    (randomScaleMode == false ? "" : " · " + "Random Mode");
             }
 
             setup?.classList.add("hidden");
@@ -2126,13 +2096,40 @@
         copyrightYear.textContent = new Date().getFullYear();
     }
 
+    
+
+    directionSelect?.addEventListener("change", () => {
+        try {
+            localStorage.setItem(DIRECTION_KEY, directionSelect.value);
+        } catch (error) {
+            console.warn("Could not save direction:", error);
+        }
+    });
+
     // Event listeners
     keySelect?.addEventListener("change", () => {
+        try {
+            localStorage.setItem(SELECTED_KEY_KEY, keySelect.value);
+            localStorage.setItem(SELECTED_RANGE_KEY, rangeSelect.value);
+            localStorage.setItem(SELECTED_TYPE_KEY, scaleSelect.value);
+        } catch (error) {
+            console.warn("Could not save scale selections:", error);
+        }
+        
         updateRangeOptions();
         updateScaleOptions();
     });
 
-    rangeSelect?.addEventListener("change", updateScaleOptions);
+    rangeSelect?.addEventListener("change", () => {
+        updateScaleOptions();
+
+        try {
+            localStorage.setItem(SELECTED_RANGE_KEY, rangeSelect.value);
+            localStorage.setItem(SELECTED_TYPE_KEY, scaleSelect.value);
+        } catch (error) {
+            console.warn("Could not save scale selections:", error);
+        }
+    });
 
     $("startButton")?.addEventListener("click", () => {
         randomScaleMode = false;
@@ -2182,47 +2179,16 @@
     fingeringToggle?.addEventListener("change", saveFingeringSetting);
     valveInputToggle?.addEventListener("change", saveValveInputSetting);
     keySignatureToggle?.addEventListener("change", saveKeySignatureSetting);
-    scaleSelect?.addEventListener("change", syncDirectionLock);
+    scaleSelect?.addEventListener("change", () => {
+        syncDirectionLock();
+
+        try {
+            localStorage.setItem(SELECTED_TYPE_KEY, scaleSelect.value);
+        } catch (error) {
+            console.warn("Could not save scale type:", error);
+        }
+    });
     themeSelect?.addEventListener("change", saveTheme);
-
-    // Confirmation for resetting data
-    const resetConfirmOverlay = $("resetConfirmOverlay");
-    const cancelResetButton = $("cancelResetButton");
-    const confirmResetButton = $("confirmResetButton");
-    const resetButton = $("resetSettingsButton");
-
-    resetButton?.addEventListener("click", event => {
-        event.preventDefault();
-        event.stopPropagation();
-
-        if (resetConfirmOverlay) {
-            resetConfirmOverlay.hidden = false;
-            cancelResetButton?.focus();
-        }
-    });
-
-    cancelResetButton?.addEventListener("click", () => {
-        if (resetConfirmOverlay) {
-            resetConfirmOverlay.hidden = true;
-        }
-
-        resetButton?.focus();
-    });
-
-    confirmResetButton?.addEventListener("click", () => {
-        if (resetConfirmOverlay) {
-            resetConfirmOverlay.hidden = true;
-        }
-
-        resetSettings();
-    });
-
-    resetConfirmOverlay?.addEventListener("click", event => {
-        if (event.target === resetConfirmOverlay) {
-            resetConfirmOverlay.hidden = true;
-            resetButton?.focus();
-        }
-    });
 
     loadSettings();
 
@@ -2254,8 +2220,36 @@
             }
 
             populateKeys();
+
+            const savedKey = localStorage.getItem(SELECTED_KEY_KEY);
+
+            if ([...keySelect.options].some(option => option.value === savedKey)) {
+                keySelect.value = savedKey;
+            }
+
             updateRangeOptions();
+
+            const savedRange = localStorage.getItem(SELECTED_RANGE_KEY);
+
+            if ([...rangeSelect.options].some(option => option.value === savedRange)) {
+                rangeSelect.value = savedRange;
+            }
+
             updateScaleOptions();
+
+            const savedType = localStorage.getItem(SELECTED_TYPE_KEY);
+
+            if ([...scaleSelect.options].some(option => option.value === savedType)) {
+                scaleSelect.value = savedType;
+            }
+
+            const savedDirection = localStorage.getItem(DIRECTION_KEY);
+
+            if (["ascending", "both"].includes(savedDirection)) {
+                directionSelect.value = savedDirection;
+            }
+
+            syncDirectionLock();
 
             if (startButton) {
                 startButton.disabled =
