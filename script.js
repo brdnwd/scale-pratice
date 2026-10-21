@@ -8,11 +8,65 @@
     // DOM elements
     const $ = id => document.getElementById(id);
 
+    // Storage keys
+    const HIDDEN_SCALES_KEY = "scalePracticeHiddenScales";
+    const THEME_KEY = "scalePracticeTheme";
+    const FINGERING_KEY = "scalePracticeShowFingerings";
+    const VALVE_INPUT_KEY = "scalePracticeValveInput";
+    const KEY_SIGNATURE_KEY = "scalePracticeShowKeySignature";
+
+    // Apply the saved theme before initializing page-specific features.
+    const themeSelect = $("themeSelect");
+
+    let initialTheme = "dark";
+
+    try {
+        initialTheme = localStorage.getItem(THEME_KEY) || "dark";
+    } catch (error) {
+        console.warn("Could not load saved theme:", error);
+    }
+
+    if (!["dark", "light"].includes(initialTheme)) {
+        initialTheme = "dark";
+    }
+
+    document.documentElement.dataset.theme = initialTheme;
+    document.documentElement.style.colorScheme = initialTheme;
+
+    // Theme switching also works on pages without the scale builder.
+    if (themeSelect) {
+        themeSelect.value = initialTheme;
+
+        themeSelect.addEventListener("change", () => {
+            const theme = ["dark", "light"].includes(themeSelect.value)
+                ? themeSelect.value
+                : "dark";
+
+            document.documentElement.dataset.theme = theme;
+            document.documentElement.style.colorScheme = theme;
+
+            try {
+                localStorage.setItem(THEME_KEY, theme);
+            } catch (error) {
+                console.warn("Could not save theme:", error);
+            }
+        });
+    }
+
+    // DOM elements used by the scale builder
     const keySelect = $("keySelect");
     const scaleSelect = $("scaleSelect");
     const rangeSelect = $("rangeSelect");
     const directionSelect = $("directionSelect");
     const errorBox = $("error");
+
+    const hasScaleBuilder = Boolean(
+        keySelect &&
+        scaleSelect &&
+        rangeSelect &&
+        directionSelect &&
+        errorBox
+    );
 
     const setup = $("setup");
     const test = $("test");
@@ -29,7 +83,6 @@
     const settingsButton = $("settingsButton");
     const settingsOverlay = $("settingsOverlay");
     const scaleSettingsTree = $("scaleSettingsTree");
-    const themeSelect = $("themeSelect");
     const fingeringToggle = $("fingeringToggle");
     const valveInputToggle = $("valveInputToggle");
     const keySignatureToggle = $("keySignatureToggle");
@@ -42,13 +95,6 @@
         valvePicker?.remove();
         noteChoices?.classList.remove("show-fingerings");
     }
-
-    // Storage keys
-    const HIDDEN_SCALES_KEY = "scalePracticeHiddenScales";
-    const THEME_KEY = "scalePracticeTheme";
-    const FINGERING_KEY = "scalePracticeShowFingerings";
-    const VALVE_INPUT_KEY = "scalePracticeValveInput";
-    const KEY_SIGNATURE_KEY = "scalePracticeShowKeySignature";
 
     // Test state
     let data;
@@ -85,12 +131,9 @@
     // Fields in each key's data that are not scale types.
     const NON_SCALE_FIELDS = ["key-signature", "types"];
 
-    // Vertical text offset per accidental. Flats need to sit lower so the
-    // loop of the ♭ lines up with the notehead.
+    // Vertical text offset per accidental.
     const ACCIDENTAL_Y_OFFSET = { sharp: 6, natural: 6, flat: 4 };
 
-    // The major scale holds the base letters for every scale in the key.
-    // The minor scales only list the notes that change from the key signature.
     const BASE_SCALE_TYPE = "major";
 
     // Vertical staff positions (treble clef) for key signature accidentals.
@@ -111,9 +154,10 @@
             .join(" ");
     }
 
-    // A plain letter and a natural of the same letter are the same pitch.
     function notePitch(note) {
-        return note.endsWith("-natural") ? note.slice(0, -"-natural".length) : note;
+        return note.endsWith("-natural")
+            ? note.slice(0, -"-natural".length)
+            : note;
     }
 
     function notesMatch(answer, correct) {
@@ -201,7 +245,10 @@
 
         if (!["dark", "light"].includes(savedTheme)) savedTheme = "dark";
 
-        themeSelect.value = savedTheme;
+        if (themeSelect) {
+            themeSelect.value = savedTheme;
+        }
+
         applyTheme(savedTheme);
 
         try {
@@ -210,7 +257,9 @@
             showFingerings = true;
         }
 
-        fingeringToggle.checked = showFingerings;
+        if (fingeringToggle) {
+            fingeringToggle.checked = showFingerings;
+        }
 
         try {
             useValveInput = !isMobile &&
@@ -219,16 +268,22 @@
             useValveInput = false;
         }
 
-        if (valveInputToggle) valveInputToggle.checked = useValveInput;
+        if (valveInputToggle) {
+            valveInputToggle.checked = useValveInput;
+        }
+
         applyInputMode();
 
         try {
-            showKeySignature = localStorage.getItem(KEY_SIGNATURE_KEY) !== "false";
+            showKeySignature =
+                localStorage.getItem(KEY_SIGNATURE_KEY) !== "false";
         } catch (error) {
             showKeySignature = true;
         }
 
-        keySignatureToggle.checked = showKeySignature;
+        if (keySignatureToggle) {
+            keySignatureToggle.checked = showKeySignature;
+        }
     }
 
     function saveHiddenScales() {
@@ -247,12 +302,17 @@
 
         document.documentElement.dataset.theme = theme;
         document.documentElement.style.colorScheme = theme;
-        themeSelect.value = theme;
+
+        if (themeSelect) {
+            themeSelect.value = theme;
+        }
 
         if (customDropdowns) customDropdowns.refresh();
     }
 
     function saveTheme() {
+        if (!themeSelect) return;
+
         const theme = themeSelect.value;
         applyTheme(theme);
 
@@ -273,11 +333,17 @@
             console.warn("Could not reset saved theme:", error);
         }
 
-        themeSelect.value = "dark";
+        if (themeSelect) {
+            themeSelect.value = "dark";
+        }
+
         applyTheme("dark");
 
         showFingerings = true;
-        fingeringToggle.checked = true;
+
+        if (fingeringToggle) {
+            fingeringToggle.checked = true;
+        }
 
         try {
             localStorage.removeItem(FINGERING_KEY);
@@ -286,7 +352,10 @@
         }
 
         useValveInput = false;
-        if (valveInputToggle) valveInputToggle.checked = false;
+
+        if (valveInputToggle) {
+            valveInputToggle.checked = false;
+        }
 
         try {
             localStorage.removeItem(VALVE_INPUT_KEY);
@@ -297,7 +366,10 @@
         applyInputMode();
 
         showKeySignature = true;
-        keySignatureToggle.checked = true;
+
+        if (keySignatureToggle) {
+            keySignatureToggle.checked = true;
+        }
 
         try {
             localStorage.removeItem(KEY_SIGNATURE_KEY);
@@ -305,8 +377,10 @@
             console.warn("Could not reset key signature setting:", error);
         }
 
-        renderScaleSettings();
-        refreshScaleSelectors();
+        if (hasScaleBuilder && data?.scales) {
+            renderScaleSettings();
+            refreshScaleSelectors();
+        }
 
         if (customDropdowns) customDropdowns.refresh();
     }
@@ -334,6 +408,8 @@
                 instances.get(select).refresh();
                 return instances.get(select);
             }
+
+            if (!select.parentNode) return null;
 
             const wrapper = document.createElement("div");
             wrapper.className = "custom-select";
@@ -372,13 +448,17 @@
             }
 
             function updateHighlight() {
-                const buttons = [...menu.querySelectorAll(".custom-select-option")];
+                const buttons = [
+                    ...menu.querySelectorAll(".custom-select-option")
+                ];
 
                 buttons.forEach((button, index) => {
                     const highlighted = index === highlightedIndex;
                     button.classList.toggle("highlighted", highlighted);
 
-                    if (highlighted) button.scrollIntoView({ block: "nearest" });
+                    if (highlighted) {
+                        button.scrollIntoView({ block: "nearest" });
+                    }
                 });
             }
 
@@ -413,7 +493,8 @@
 
                 if (openAbove) {
                     menu.style.top = "auto";
-                    menu.style.bottom = `${window.innerHeight - rect.top + gap}px`;
+                    menu.style.bottom =
+                        `${window.innerHeight - rect.top + gap}px`;
                     menu.style.transformOrigin = "bottom center";
                 } else {
                     menu.style.bottom = "auto";
@@ -465,7 +546,9 @@
 
                     button.addEventListener("click", () => {
                         select.value = option.value;
-                        select.dispatchEvent(new Event("change", { bubbles: true }));
+                        select.dispatchEvent(
+                            new Event("change", { bubbles: true })
+                        );
                         refresh();
                         close();
                         trigger.focus();
@@ -739,8 +822,11 @@
             ];
 
             descendants.forEach(child => {
-                if (checkbox.checked) hiddenScales.delete(child.dataset.settingId);
-                else hiddenScales.add(child.dataset.settingId);
+                if (checkbox.checked) {
+                    hiddenScales.delete(child.dataset.settingId);
+                } else {
+                    hiddenScales.add(child.dataset.settingId);
+                }
             });
 
             if (checkbox.checked) hiddenScales.delete(id);
@@ -779,6 +865,8 @@
     }
 
     function renderFilterGroup(container, values, idFor) {
+        if (!container) return;
+
         container.replaceChildren();
 
         values.forEach(value => {
@@ -812,8 +900,9 @@
     }
 
     function renderScaleSettings() {
-        scaleSettingsTree.replaceChildren();
+        if (!scaleSettingsTree || !data?.scales) return;
 
+        scaleSettingsTree.replaceChildren();
         renderGlobalFilters();
 
         Object.keys(data.scales).forEach(key => {
@@ -847,6 +936,8 @@
     }
 
     function updateSettingsCheckboxes() {
+        if (!scaleSettingsTree) return;
+
         const checkboxes = [
             ...scaleSettingsTree.querySelectorAll("input[type='checkbox']")
         ];
@@ -863,12 +954,15 @@
                     hiddenScales.has(typeSettingId(type)) ||
                     hiddenScales.has(globalRangeSettingId(parts[2]));
             } else if (id.startsWith("range:")) {
-                checkbox.disabled = hiddenScales.has(globalRangeSettingId(parts[2]));
+                checkbox.disabled =
+                    hiddenScales.has(globalRangeSettingId(parts[2]));
             }
         });
 
         checkboxes.reverse().forEach(checkbox => {
             const node = checkbox.closest(".scale-settings-node");
+            if (!node) return;
+
             const descendants = [
                 ...node.querySelectorAll(
                     ":scope > .scale-settings-children input[type='checkbox']"
@@ -909,16 +1003,23 @@
     }
 
     function openSettings() {
-        renderScaleSettings();
+        if (!settingsOverlay) return;
+
+        if (hasScaleBuilder && data?.scales) {
+            renderScaleSettings();
+        }
+
         settingsOverlay.classList.remove("hidden");
         settingsOverlay.setAttribute("aria-hidden", "false");
-        $("closeSettingsButton").focus();
+        $("closeSettingsButton")?.focus();
     }
 
     function closeSettings() {
+        if (!settingsOverlay) return;
+
         settingsOverlay.classList.add("hidden");
         settingsOverlay.setAttribute("aria-hidden", "true");
-        settingsButton.focus();
+        settingsButton?.focus();
     }
 
     // Key signatures
@@ -926,7 +1027,6 @@
         return data.scales[key]?.["key-signature"] || [];
     }
 
-    // Maps each letter in the key signature to its accidental, e.g. { f: "sharp" }.
     function getKeySignatureMap(key) {
         const map = {};
 
@@ -941,10 +1041,16 @@
     // Staff drawing and scrolling
     function drawStaff() {
         const svg = $("scaleStaff");
+        if (!svg) return;
+
         const staffLines = svg.querySelector(".staff-lines");
         const notesGroup = $("staffNotes");
         const ledgerGroup = $("staffLedgerLines");
         const signatureGroup = $("staffKeySignature");
+
+        if (!staffLines || !notesGroup || !ledgerGroup || !signatureGroup) {
+            return;
+        }
 
         notesGroup.replaceChildren();
         ledgerGroup.replaceChildren();
@@ -956,7 +1062,6 @@
         const stepY = 6;
         const bottomY = 93;
 
-        // Key signature, drawn right after the clef.
         const signature = showKeySignature ? getKeySignature(currentKey) : [];
         const signatureMap = showKeySignature ? getKeySignatureMap(currentKey) : {};
         const signatureStartX = 52;
@@ -980,7 +1085,6 @@
             ? signatureStartX + (signature.length - 1) * signatureSpacing + 8
             : 0;
 
-        // Leave room for the key signature before the first note.
         const startX = Math.max(100, signatureEndX + 34);
 
         let octave = Number(data.scales[currentKey]?.["octave-level"] || 4);
@@ -1023,7 +1127,6 @@
         });
 
         positions.forEach(({ note, x, y, index }) => {
-            // Ledger lines below and above the staff
             if (y >= 99) {
                 for (let ledgerY = 105; ledgerY <= y; ledgerY += 12) {
                     const line = document.createElementNS(NS, "line");
@@ -1048,13 +1151,10 @@
                 }
             }
 
-            // Accidentals: only shown when the note differs from the key signature.
             const [letter, accidental = ""] = note.split("-");
             const effectiveAccidental = accidental || "natural";
             const signatureAccidental = signatureMap[letter] || "natural";
 
-            // With the key signature on, only show notes that differ from it.
-            // With it off, show every accidental the note carries.
             const needsAccidental = showKeySignature
                 ? effectiveAccidental !== signatureAccidental
                 : Boolean(accidental);
@@ -1062,13 +1162,15 @@
             if (needsAccidental && accidentalSymbols[effectiveAccidental]) {
                 const accidentalText = document.createElementNS(NS, "text");
                 accidentalText.setAttribute("x", x - 12);
-                accidentalText.setAttribute("y", y + ACCIDENTAL_Y_OFFSET[effectiveAccidental]);
+                accidentalText.setAttribute(
+                    "y",
+                    y + ACCIDENTAL_Y_OFFSET[effectiveAccidental]
+                );
                 accidentalText.setAttribute("class", "staff-accidental");
                 accidentalText.textContent = accidentalSymbols[effectiveAccidental];
                 notesGroup.append(accidentalText);
             }
 
-            // Notehead and stem
             const notehead = document.createElementNS(NS, "ellipse");
             notehead.setAttribute("cx", x);
             notehead.setAttribute("cy", y);
@@ -1093,7 +1195,6 @@
             notesGroup.append(stem);
         });
 
-        // Keep the initial staff at the left and scroll as new notes are added.
         requestAnimationFrame(() => {
             if (!answers.length) {
                 resetStaffScroll();
@@ -1134,7 +1235,10 @@
             wrapper.scrollWidth - wrapper.clientWidth
         );
 
-        targetScrollLeft = Math.max(0, Math.min(targetScrollLeft, maxScrollLeft));
+        targetScrollLeft = Math.max(
+            0,
+            Math.min(targetScrollLeft, maxScrollLeft)
+        );
 
         if (Math.abs(targetScrollLeft - wrapper.scrollLeft) > 1) {
             wrapper.scrollTo({ left: targetScrollLeft, behavior: "smooth" });
@@ -1158,7 +1262,6 @@
         }
     }
 
-    // Melodic minor always goes up and down, so lock the direction dropdown.
     function syncDirectionLock() {
         const isMelodic = scaleSelect.value === "melodic-minor";
 
@@ -1241,8 +1344,12 @@
 
         syncDirectionLock();
 
-        $("startButton").disabled =
-            !keySelect.value || !rangeSelect.value || !scaleSelect.value;
+        const startButton = $("startButton");
+
+        if (startButton) {
+            startButton.disabled =
+                !keySelect.value || !rangeSelect.value || !scaleSelect.value;
+        }
 
         if (customDropdowns) customDropdowns.refresh();
     }
@@ -1298,8 +1405,6 @@
         if (customDropdowns) customDropdowns.refresh();
     }
 
-    // Builds the full two-octave scale for a key and scale type, with every
-    // note resolved to its real name (key signature plus any scale changes).
     function buildScale(key, type) {
         const keyData = data.scales[key];
         const baseLetters = keyData[BASE_SCALE_TYPE];
@@ -1328,26 +1433,23 @@
         });
     }
 
-    // Applies the range: 1-octave is the first 8 notes, 2-octave is everything,
-    // and extended-range is the 2-octave scale without its last 3 notes.
     function applyRange(notes, range) {
         if (range === "1-octave") return notes.slice(0, 8);
+
         if (range === "extended-range") {
             return notes.slice(0, Math.max(0, notes.length - 3));
         }
+
         return [...notes];
     }
 
     function getScaleSequence(key, type, range, direction) {
         const ascending = applyRange(buildScale(key, type), range);
-
-        // Melodic minor always goes up and comes back down.
         const includeDescending =
             direction === "both" || type === "melodic-minor";
 
         if (!includeDescending) return ascending;
 
-        // Melodic minor comes back down as natural minor.
         const descendingSource = type === "melodic-minor"
             ? applyRange(buildScale(key, "natural-minor"), range)
             : ascending;
@@ -1361,6 +1463,7 @@
 
         naturalNotes.forEach(letter => {
             choices.add(letter);
+
             accidentalNotes.forEach(accidental => {
                 choices.add(letter + "-" + accidental);
             });
@@ -1369,16 +1472,17 @@
         return [...choices].sort((a, b) => {
             const aLetter = a.split("-")[0];
             const bLetter = b.split("-")[0];
+
             const letterDifference =
                 naturalNotes.indexOf(aLetter) - naturalNotes.indexOf(bLetter);
 
-            return letterDifference !== 0 ? letterDifference : a.localeCompare(b);
+            return letterDifference !== 0
+                ? letterDifference
+                : a.localeCompare(b);
         });
     }
 
     // Fingerings
-    // Written-pitch trumpet fingerings (Trumpet Heroes chart), keyed by MIDI
-    // number (C4 = 60). Each entry lists the valves pressed; [] means open.
     const FINGERINGS = {
         54: [1, 2, 3], 55: [1, 3], 56: [2, 3], 57: [1, 2], 58: [1], 59: [2],
         60: [], 61: [1, 2, 3], 62: [1, 3], 63: [2, 3], 64: [1, 2], 65: [1],
@@ -1393,14 +1497,11 @@
     const LETTER_ORDER = ["c", "d", "e", "f", "g", "a", "b"];
     const SVG_NS = "http://www.w3.org/2000/svg";
 
-    // Semitones above C for a note name (can be -1 for C♭ or 12 for B♯).
     function noteSemitone(note) {
         const [letter, accidental] = note.split("-");
         return LETTER_SEMITONES[letter] + (ACCIDENTAL_OFFSETS[accidental] || 0);
     }
 
-    // MIDI number for every note in a sequence, using the same octave
-    // wrapping rule as the staff (starts in octave 4).
     function getSequenceMidis(notes) {
         let octave = Number(data.scales[currentKey]?.["octave-level"] || 4);
         let previousLetter = null;
@@ -1419,7 +1520,6 @@
         });
     }
 
-    // The octave of a button's note that is closest to the note being built.
     function getButtonMidi(note, targetMidi) {
         const pitchClass = ((noteSemitone(note) % 12) + 12) % 12;
         return pitchClass + 12 * Math.round((targetMidi - pitchClass) / 12);
@@ -1447,8 +1547,9 @@
         return svg;
     }
 
-    // Buttons are built once and reused, so the valves can animate between notes.
     function buildNoteButtons() {
+        if (!noteChoices) return;
+
         noteChoices.replaceChildren();
 
         getNoteOptions().forEach(note => {
@@ -1478,7 +1579,7 @@
     }
 
     function updateFingerings() {
-        if (isMobile) return;
+        if (isMobile || !noteChoices) return;
 
         noteChoices.classList.toggle("show-fingerings", showFingerings);
 
@@ -1488,8 +1589,10 @@
         noteChoices.querySelectorAll(".note-button").forEach(button => {
             const note = button.dataset.note;
             const fingering = FINGERINGS[getButtonMidi(note, targetMidi)];
-
             const svg = button.querySelector(".fingering");
+
+            if (!svg) return;
+
             svg.classList.toggle("unknown", !fingering);
 
             svg.querySelectorAll(".valve").forEach(valve => {
@@ -1509,6 +1612,8 @@
     }
 
     function saveFingeringSetting() {
+        if (!fingeringToggle) return;
+
         showFingerings = fingeringToggle.checked;
 
         try {
@@ -1520,19 +1625,19 @@
         updateFingerings();
     }
 
-    // Valve picker (optional note input)
+    // Valve picker
     const VALVE_KEYS = ["ArrowLeft", "ArrowDown", "ArrowRight"];
+
     const SHARP_NAMES = [
         "c", "c-sharp", "d", "d-sharp", "e", "f",
         "f-sharp", "g", "g-sharp", "a", "a-sharp", "b"
     ];
+
     const FLAT_NAMES = [
         "c", "d-flat", "d", "e-flat", "e", "f",
         "g-flat", "g", "a-flat", "a", "b-flat", "b"
     ];
 
-    // Reverse lookup: valve combination ("1-2", "" for open) -> every MIDI
-    // pitch that uses it, lowest first.
     const FINGERING_LOOKUP = new Map();
 
     Object.entries(FINGERINGS).forEach(([midi, valves]) => {
@@ -1545,16 +1650,16 @@
 
     function isPickerActive() {
         return useValveInput &&
+            test &&
             !test.classList.contains("hidden") &&
             !finished &&
-            settingsOverlay.classList.contains("hidden");
+            (!settingsOverlay || settingsOverlay.classList.contains("hidden"));
     }
 
     function getPressedValves() {
         return [1, 2, 3].filter((_, index) => valveStates[index]);
     }
 
-    // Names a pitch using flats in flat keys and sharps everywhere else.
     function spellMidi(midi) {
         const prefersFlats = getKeySignature(currentKey)
             .some(note => note.endsWith("-flat"));
@@ -1562,8 +1667,6 @@
         return (prefersFlats ? FLAT_NAMES : SHARP_NAMES)[midi % 12];
     }
 
-    // Works out which note the current fingering plays. The octave is the
-    // one closest to the note being built, since valves alone don't set it.
     function resolvePickedNote() {
         const index = answers.length;
         const targetMidi = expectedMidis[index];
@@ -1585,7 +1688,6 @@
         return {
             midi,
             preview,
-            // Same pitch as the scale note: keep the scale's spelling (E♯ vs F).
             note: midi % 12 === expectedPitchClass ? expected[index] : preview
         };
     }
@@ -1594,8 +1696,12 @@
         if (!useValveInput) return;
 
         const picked = resolvePickedNote();
+        const noteLetter = $("noteLetter");
 
-        $("noteLetter").textContent = picked ? displayNote(picked.preview) : "?";
+        if (noteLetter) {
+            noteLetter.textContent = picked ? displayNote(picked.preview) : "?";
+        }
+
         if (placeNoteButton) placeNoteButton.disabled = !picked;
     }
 
@@ -1622,11 +1728,13 @@
         renderQuestion();
     }
 
-    // Shows the note buttons or the valve picker, depending on the setting.
     function refreshNoteInput() {
+        const noteInstruction = $("noteInstruction");
+        const noteLetter = $("noteLetter");
+
         if (useValveInput) {
-            $("noteInstruction").innerHTML =
-                `
+            if (noteInstruction) {
+                noteInstruction.innerHTML = `
                     Press the valves down with
                     <span class="keyboard-keys" aria-label="Arrow keys">
                         <svg class="key-icon" viewBox="0 0 24 24" aria-label="Left arrow">
@@ -1654,30 +1762,47 @@
                         <path d="M13 16h22" />
                     </svg>
                     to choose the note.
-                
                 `;
+            }
+
             updatePicker();
         } else {
-            $("noteInstruction").innerHTML = "Choose the correct note."
-            $("noteLetter").textContent = answers.length
-                ? answers[answers.length - 1]
-                : "?";
+            if (noteInstruction) {
+                noteInstruction.textContent = "Choose the correct note.";
+            }
 
-            if (!noteChoices.children.length) buildNoteButtons();
+            if (noteLetter) {
+                noteLetter.textContent = answers.length
+                    ? answers[answers.length - 1]
+                    : "?";
+            }
+
+            if (noteChoices && !noteChoices.children.length) {
+                buildNoteButtons();
+            }
+
             updateFingerings();
         }
     }
 
     function applyInputMode() {
-        noteChoices.classList.toggle("hidden", useValveInput);
-        if (valvePicker) valvePicker.classList.toggle("hidden", !useValveInput);
+        if (noteChoices) {
+            noteChoices.classList.toggle("hidden", useValveInput);
+        }
+
+        if (valvePicker) {
+            valvePicker.classList.toggle("hidden", !useValveInput);
+        }
 
         if (!useValveInput) releaseAllValves();
-        if (expected.length && !test.classList.contains("hidden")) refreshNoteInput();
+
+        if (expected.length && test && !test.classList.contains("hidden")) {
+            refreshNoteInput();
+        }
     }
 
     function saveValveInputSetting() {
-        if (isMobile) return;
+        if (isMobile || !valveInputToggle) return;
 
         useValveInput = valveInputToggle.checked;
 
@@ -1693,7 +1818,9 @@
     function initValvePicker() {
         document.addEventListener("keydown", event => {
             if (!isPickerActive()) return;
-            if (event.target.closest?.("input, textarea, select, [contenteditable=true]")) return;
+            if (event.target.closest?.("input, textarea, select, [contenteditable=true]")) {
+                return;
+            }
 
             const index = VALVE_KEYS.indexOf(event.key);
 
@@ -1705,7 +1832,8 @@
 
             const isPlaceKey =
                 event.code === "Space" ||
-                (event.key === "Enter" && !event.target.closest?.("button, a, .valve"));
+                (event.key === "Enter" &&
+                    !event.target.closest?.("button, a, .valve"));
 
             if (isPlaceKey) {
                 event.preventDefault();
@@ -1728,18 +1856,24 @@
             });
 
             valve.addEventListener("keyup", event => {
-                if (event.key === "Space" || event.key === " ") setValve(index, false);
+                if (event.key === "Space" || event.key === " ") {
+                    setValve(index, false);
+                }
             });
         });
 
         if (placeNoteButton) {
-            // Keep focus off the button so the arrow keys keep working after a click.
-            placeNoteButton.addEventListener("mousedown", event => event.preventDefault());
+            placeNoteButton.addEventListener("mousedown", event => {
+                event.preventDefault();
+            });
+
             placeNoteButton.addEventListener("click", placePickedNote);
         }
     }
 
     function saveKeySignatureSetting() {
+        if (!keySignatureToggle) return;
+
         showKeySignature = keySignatureToggle.checked;
 
         try {
@@ -1748,7 +1882,9 @@
             console.warn("Could not save key signature setting:", error);
         }
 
-        if (currentKey && !test.classList.contains("hidden")) drawStaff();
+        if (currentKey && test && !test.classList.contains("hidden")) {
+            drawStaff();
+        }
     }
 
     // Test flow
@@ -1786,25 +1922,29 @@
             errorBox.textContent = "";
             releaseAllValves();
 
-            $("testTitle").textContent =
-                displayName(currentKey) + " " +
-                displayName(currentType) + " · " +
-                displayName(currentRange) + " · " +
-                (direction === "both" || currentType === "melodic-minor"
-                    ? "Ascending and Descending"
-                    : "Ascending Only");
+            const testTitle = $("testTitle");
 
-            setup.classList.add("hidden");
-            results.classList.add("hidden");
-            test.classList.remove("hidden");
+            if (testTitle) {
+                testTitle.textContent =
+                    displayName(currentKey) + " " +
+                    displayName(currentType) + " · " +
+                    displayName(currentRange) + " · " +
+                    (direction === "both" || currentType === "melodic-minor"
+                        ? "Ascending and Descending"
+                        : "Ascending Only");
+            }
+
+            setup?.classList.add("hidden");
+            results?.classList.add("hidden");
+            test?.classList.remove("hidden");
 
             renderQuestion();
             resetStaffScroll();
             requestAnimationFrame(resetStaffScroll);
         } catch (error) {
-            test.classList.add("hidden");
-            results.classList.add("hidden");
-            setup.classList.remove("hidden");
+            test?.classList.add("hidden");
+            results?.classList.add("hidden");
+            setup?.classList.remove("hidden");
             errorBox.textContent = error.message;
             console.error("Could not start scale test:", error);
         }
@@ -1816,21 +1956,33 @@
             return;
         }
 
-        $("noteNumber").textContent =
-            "Note " + (answers.length + 1) + " of " + expected.length;
+        const noteNumber = $("noteNumber");
+        const progressBar = $("progressBar");
+        const undoButton = $("undoButton");
 
-        $("progressBar").style.width = (answers.length / expected.length * 100) + "%";
+        if (noteNumber) {
+            noteNumber.textContent =
+                "Note " + (answers.length + 1) + " of " + expected.length;
+        }
+
+        if (progressBar) {
+            progressBar.style.width =
+                (answers.length / expected.length * 100) + "%";
+        }
 
         refreshNoteInput();
 
-        $("undoButton").disabled = answers.length === 0;
+        if (undoButton) {
+            undoButton.disabled = answers.length === 0;
+        }
+
         drawStaff();
     }
 
     function gradeTest() {
         finished = true;
-        test.classList.add("hidden");
-        results.classList.remove("hidden");
+        test?.classList.add("hidden");
+        results?.classList.remove("hidden");
 
         const mistakes = [];
 
@@ -1841,60 +1993,70 @@
         });
 
         const correct = expected.length - mistakes.length;
-        const percentage = Math.round(correct / expected.length * 100);
+        const percentage = expected.length
+            ? Math.round(correct / expected.length * 100)
+            : 0;
 
-        $("resultTitle").textContent =
-            percentage === 100 ? "Perfect Scale!" : "Scale Complete";
-
-        $("score").textContent =
-            correct + " / " + expected.length + " correct (" + percentage + "%)";
-
+        const resultTitle = $("resultTitle");
+        const score = $("score");
         const details = $("resultDetails");
-        details.replaceChildren();
+        const progressBar = $("progressBar");
 
-        if (!mistakes.length) {
-            const message = document.createElement("p");
-            message.className = "status good";
-            message.textContent = "Every note is correct. Great work!";
-            details.append(message);
-        } else {
-            const message = document.createElement("p");
-            message.className = "status bad";
-            message.textContent = mistakes.length + " note(s) need correction:";
-            details.append(message);
+        if (resultTitle) {
+            resultTitle.textContent =
+                percentage === 100 ? "Perfect Scale!" : "Scale Complete";
         }
 
-        const heading = document.createElement("div");
-        heading.className = "result-row muted";
-        heading.innerHTML = "<span>Your answer</span><span>Correct answer</span>";
-        details.append(heading);
+        if (score) {
+            score.textContent =
+                correct + " / " + expected.length + " correct (" + percentage + "%)";
+        }
 
-        expected.forEach((note, index) => {
-            const row = document.createElement("div");
-            row.className = "result-row";
+        if (details) {
+            details.replaceChildren();
 
-            const actual = document.createElement("span");
-            actual.textContent =
-                (index + 1) + ". " +
-                (answers[index] ? displayNote(answers[index]) : "No answer");
+            const message = document.createElement("p");
+            message.className = mistakes.length ? "status bad" : "status good";
+            message.textContent = mistakes.length
+                ? mistakes.length + " note(s) need correction:"
+                : "Every note is correct. Great work!";
+            details.append(message);
 
-            const expectedSpan = document.createElement("span");
-            expectedSpan.textContent = (index + 1) + ". " + displayNote(note);
-            expectedSpan.className = "expected";
+            const heading = document.createElement("div");
+            heading.className = "result-row muted";
+            heading.innerHTML = "<span>Your answer</span><span>Correct answer</span>";
+            details.append(heading);
 
-            actual.className = notesMatch(answers[index], note) ? "expected" : "incorrect";
+            expected.forEach((note, index) => {
+                const row = document.createElement("div");
+                row.className = "result-row";
 
-            row.append(actual, expectedSpan);
-            details.append(row);
-        });
+                const actual = document.createElement("span");
+                actual.textContent =
+                    (index + 1) + ". " +
+                    (answers[index] ? displayNote(answers[index]) : "No answer");
 
-        $("progressBar").style.width = "100%";
+                const expectedSpan = document.createElement("span");
+                expectedSpan.textContent =
+                    (index + 1) + ". " + displayNote(note);
+                expectedSpan.className = "expected";
+
+                actual.className = notesMatch(answers[index], note)
+                    ? "expected"
+                    : "incorrect";
+
+                row.append(actual, expectedSpan);
+                details.append(row);
+            });
+        }
+
+        if (progressBar) progressBar.style.width = "100%";
     }
 
     function returnToSetup() {
-        test.classList.add("hidden");
-        results.classList.add("hidden");
-        setup.classList.remove("hidden");
+        test?.classList.add("hidden");
+        results?.classList.add("hidden");
+        setup?.classList.remove("hidden");
     }
 
     function nextScale() {
@@ -1949,28 +2111,30 @@
 
             startTest();
         } catch (error) {
-            test.classList.add("hidden");
-            results.classList.add("hidden");
-            setup.classList.remove("hidden");
+            test?.classList.add("hidden");
+            results?.classList.add("hidden");
+            setup?.classList.remove("hidden");
             errorBox.textContent = error.message;
             console.error("Could not advance to the next scale:", error);
         }
     }
 
     // Initialize
-    if ($("copyrightYear")) {
-        $("copyrightYear").textContent = new Date().getFullYear();
+    const copyrightYear = $("copyrightYear");
+
+    if (copyrightYear) {
+        copyrightYear.textContent = new Date().getFullYear();
     }
 
     // Event listeners
-    keySelect.addEventListener("change", () => {
+    keySelect?.addEventListener("change", () => {
         updateRangeOptions();
         updateScaleOptions();
     });
 
-    rangeSelect.addEventListener("change", updateScaleOptions);
+    rangeSelect?.addEventListener("change", updateScaleOptions);
 
-    $("startButton").addEventListener("click", () => {
+    $("startButton")?.addEventListener("click", () => {
         randomScaleMode = false;
         startTest();
     });
@@ -1981,8 +2145,8 @@
             startTest(true);
         });
     });
-    
-    $("undoButton").addEventListener("click", () => {
+
+    $("undoButton")?.addEventListener("click", () => {
         if (!finished && answers.length) {
             answers.pop();
             renderQuestion();
@@ -1993,58 +2157,94 @@
         button.addEventListener("click", returnToSetup);
     });
 
-    document.querySelectorAll(".randomButton").forEach(button => {
-        button.addEventListener("click", () => startTest(true));
-    });
+    $("nextscaleButton")?.addEventListener("click", nextScale);
 
-    $("nextscaleButton").addEventListener("click", nextScale);
+    settingsButton?.addEventListener("click", openSettings);
+    $("closeSettingsButton")?.addEventListener("click", closeSettings);
+    $("doneSettingsButton")?.addEventListener("click", closeSettings);
 
-    settingsButton.addEventListener("click", openSettings);
-    $("closeSettingsButton").addEventListener("click", closeSettings);
-    $("doneSettingsButton").addEventListener("click", closeSettings);
-    $("resetSettingsButton").addEventListener("click", resetSettings);
-    themeSelect.addEventListener("change", saveTheme);
-
-    settingsOverlay.addEventListener("click", event => {
+    settingsOverlay?.addEventListener("click", event => {
         if (event.target === settingsOverlay) closeSettings();
     });
 
     document.addEventListener("keydown", event => {
         if (
             event.key === "Escape" &&
+            settingsOverlay &&
             !settingsOverlay.classList.contains("hidden")
         ) {
             closeSettings();
         }
     });
 
-    $("retryButton").addEventListener("click", () => startTest());
+    $("retryButton")?.addEventListener("click", () => startTest());
 
-    fingeringToggle.addEventListener("change", saveFingeringSetting);
+    fingeringToggle?.addEventListener("change", saveFingeringSetting);
+    valveInputToggle?.addEventListener("change", saveValveInputSetting);
+    keySignatureToggle?.addEventListener("change", saveKeySignatureSetting);
+    scaleSelect?.addEventListener("change", syncDirectionLock);
+    themeSelect?.addEventListener("change", saveTheme);
 
-    if (valveInputToggle) {
-        valveInputToggle.addEventListener("change", saveValveInputSetting);
-    }
+    // Confirmation for resetting data
+    const resetConfirmOverlay = $("resetConfirmOverlay");
+    const cancelResetButton = $("cancelResetButton");
+    const confirmResetButton = $("confirmResetButton");
+    const resetButton = $("resetSettingsButton");
 
-    initValvePicker();
+    resetButton?.addEventListener("click", event => {
+        event.preventDefault();
+        event.stopPropagation();
 
-    keySignatureToggle.addEventListener("change", saveKeySignatureSetting);
+        if (resetConfirmOverlay) {
+            resetConfirmOverlay.hidden = false;
+            cancelResetButton?.focus();
+        }
+    });
 
-    scaleSelect.addEventListener("change", syncDirectionLock);
+    cancelResetButton?.addEventListener("click", () => {
+        if (resetConfirmOverlay) {
+            resetConfirmOverlay.hidden = true;
+        }
+
+        resetButton?.focus();
+    });
+
+    confirmResetButton?.addEventListener("click", () => {
+        if (resetConfirmOverlay) {
+            resetConfirmOverlay.hidden = true;
+        }
+
+        resetSettings();
+    });
+
+    resetConfirmOverlay?.addEventListener("click", event => {
+        if (event.target === resetConfirmOverlay) {
+            resetConfirmOverlay.hidden = true;
+            resetButton?.focus();
+        }
+    });
 
     loadSettings();
+
+    if (hasScaleBuilder) {
+        initValvePicker();
+    }
 
     async function loadData() {
         try {
             errorBox.textContent = "";
-            $("startButton").disabled = true;
+
+            const startButton = $("startButton");
+            if (startButton) startButton.disabled = true;
 
             const response = await fetch(
                 new URL("../scales-data.json", window.location.href)
             );
 
             if (!response.ok) {
-                throw new Error(`Failed to load scales-data.json (${response.status})`);
+                throw new Error(
+                    `Failed to load scales-data.json (${response.status})`
+                );
             }
 
             data = await response.json();
@@ -2057,24 +2257,30 @@
             updateRangeOptions();
             updateScaleOptions();
 
-            $("startButton").disabled =
-                !keySelect.value || !rangeSelect.value || !scaleSelect.value;
+            if (startButton) {
+                startButton.disabled =
+                    !keySelect.value || !rangeSelect.value || !scaleSelect.value;
+            }
 
             renderScaleSettings();
         } catch (error) {
             errorBox.textContent =
                 "Could not load scales-data.json: " + error.message;
 
-            $("startButton").disabled = true;
+            const startButton = $("startButton");
+            if (startButton) startButton.disabled = true;
+
             console.error("Scale data loading failed:", error);
         }
     }
 
-    await loadData();
+    if (hasScaleBuilder) {
+        await loadData();
+    }
 
     customDropdowns = initCustomDropdowns();
     customDropdowns.refresh();
-    
+
     if ("serviceWorker" in navigator) {
         window.addEventListener("load", () => {
             navigator.serviceWorker.register("./service-worker.js")
@@ -2082,7 +2288,10 @@
                     console.log("Scale practice service worker registered.");
                 })
                 .catch(error => {
-                    console.error("Service worker registration failed:", error);
+                    console.error(
+                        "Service worker registration failed:",
+                        error
+                    );
                 });
         });
     }

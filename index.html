@@ -10,12 +10,23 @@
     </head>
     <body>
         <main>
+            <nav class="navbar">
+                <a class="navbar-link" href="https://github.com/trompettelabs">
+                    <span>@trompettelabs</span>
+                </a>
+                <a class="navbar-link" href="#" id="settingsButton" aria-label="Settings">
+                    <span>Settings</span>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M9.671 4.136a2.34 2.34 0 0 1 4.659 0 2.34 2.34 0 0 0 3.319 1.915 2.34 2.34 0 0 1 2.33 4.033 2.34 2.34 0 0 0 0 3.831 2.34 2.34 0 0 1-2.33 4.033 2.34 2.34 0 0 0-3.319 1.915 2.34 2.34 0 0 1-4.659 0 2.34 2.34 0 0 0-3.32-1.915 2.34 2.34 0 0 1-2.33-4.033 2.34 2.34 0 0 0 0-3.831A2.34 2.34 0 0 1 6.35 6.051a2.34 2.34 0 0 0 3.319-1.915" />
+                        <circle cx="12" cy="12" r="3" />
+                    </svg>
+                </a>
+            </nav>
             <header class="home-header">
-                <img src="/icons/icon.png">
+                <img src="/icons/icon.png" alt="">
                 <h1>TrompetteLabs</h1>
                 <p>Practice your scales, strengthen your musical knowledge, and build confidence on trumpet.</p>
             </header>
-
             <section class="activity-cards" aria-label="Practice activities">
                 <a href="/scales-builder/" class="activity-card">
                     <div class="activity-card-icon" aria-hidden="true">
@@ -75,6 +86,27 @@
                     </svg>
                 </a>
 
+                <a href="/transposition-practice/" class="activity-card disabled" aria-disabled="true" tabindex="-1">
+                    <div class="activity-card-icon" aria-hidden="true">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M4 7h13" />
+                            <path d="m13 3 4 4-4 4" />
+                            <path d="M20 17H7" />
+                            <path d="m11 13-4 4 4 4" />
+                            <circle cx="5" cy="17" r="1" />
+                            <circle cx="19" cy="7" r="1" />
+                        </svg>
+                    </div>
+                    <div class="activity-card-content">
+                        <h2>Transposition Practice</h2>
+                        <p>Practice transposing scales and familiar melodies into different keys. Test your knowledge of notes, key signatures, and accidentals.</p>
+                    </div>
+                    <svg class="activity-card-arrow" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <path d="M5 12h14" />
+                        <path d="m12 5 7 7-7 7" />
+                    </svg>
+                </a>
+
                 <a href="/high-note-identification/" class="activity-card disabled" aria-disabled="true" tabindex="-1">
                     <div class="activity-card-icon" aria-hidden="true">
                         <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
@@ -120,6 +152,46 @@
                     Unauthorized copying, redistribution, or reuse is prohibited.
                 </span>
             </footer>
+
+            <div class="settings-overlay hidden" id="settingsOverlay" aria-hidden="true">
+                <section class="settings-modal" role="dialog" aria-modal="true" aria-labelledby="settingsTitle">
+                    <header class="settings-header">
+                        <div>
+                            <h2 id="settingsTitle">Settings</h2>
+                            <p class="muted">Manage your preferences and personalize your experience.</p>
+                        </div>
+                        <button type="button" class="settings-close" id="closeSettingsButton" aria-label="Close settings">&times;</button>
+                    </header>
+
+                    <div class="settings-content">
+                        <section class="settings-section settings-theme-section">
+                            <h3>Appearance</h3>
+                            <label class="theme-setting" for="themeSelect">
+                                <select id="themeSelect">
+                                    <option value="dark">Dark</option>
+                                    <option value="light">Light</option>
+                                </select>
+                            </label>
+                        </section>
+                    </div>
+
+                    <footer class="settings-footer">
+                        <button type="button" class="secondary" id="resetSettingsButton">Reset Settings</button>
+                        <button type="button" class="primary text-opposed-color" id="doneSettingsButton">Done</button>
+                    </footer>
+                </section>
+                <div id="resetConfirmOverlay" class="settings-overlay" hidden>
+                    <div class="settings-panel" role="alertdialog" aria-modal="true" aria-labelledby="resetConfirmTitle" aria-describedby="resetConfirmMessage">
+                        <h2 id="resetConfirmTitle">Reset all data?</h2>
+                        <p id="resetConfirmMessage">This will reset your settings across the entire site, not just this page. This action cannot be undone. Are you sure you want to continue?</p>
+
+                        <div class="settings-actions">
+                            <button type="button" id="cancelResetButton" class="secondary">Cancel</button>
+                            <button type="button" id="confirmResetButton" class="danger">Reset all settings</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </main>
 
         <script src="./script.js"></script>

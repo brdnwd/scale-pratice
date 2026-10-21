@@ -233,7 +233,7 @@
                     <header class="settings-header">
                         <div>
                             <h2 id="settingsTitle">Settings</h2>
-                            <p class="muted">Customize your scale practice.</p>
+                            <p class="muted">Manage your preferences and personalize your experience.</p>
                         </div>
                         <button type="button" class="settings-close" id="closeSettingsButton" aria-label="Close settings">&times;</button>
                     </header>
@@ -275,8 +275,10 @@
 
                         <section class="settings-section">
                             <h3>Scales</h3>
-                            <p class="muted">Uncheck a key, range, or scale type to hide it from practice.</p>
-
+                            <label class="theme-setting toggle-setting">
+                                <span>Uncheck a key, range, or scale type to hide it from practice.</span>
+                            </label>
+                            
                             <h4 class="filter-heading">Modes</h4>
                             <div id="scaleTypeFilters" class="scale-type-filters"></div>
 
@@ -293,6 +295,17 @@
                         <button type="button" class="primary text-opposed-color" id="doneSettingsButton">Done</button>
                     </footer>
                 </section>
+                <div id="resetConfirmOverlay" class="settings-overlay" hidden>
+                    <div class="settings-panel" role="alertdialog" aria-modal="true" aria-labelledby="resetConfirmTitle" aria-describedby="resetConfirmMessage">
+                        <h2 id="resetConfirmTitle">Reset all data?</h2>
+                        <p id="resetConfirmMessage">This will reset your settings across the entire site, not just this page. This action cannot be undone. Are you sure you want to continue?</p>
+
+                        <div class="settings-actions">
+                            <button type="button" id="cancelResetButton" class="secondary">Cancel</button>
+                            <button type="button" id="confirmResetButton" class="danger">Reset all settings</button>
+                        </div>
+                    </div>
+                </div>
             </div>
         </main>
 
