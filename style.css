@@ -679,10 +679,11 @@ button:disabled {
 
 #scaleStaff {
     display: block;
-    width: 100%;
-    min-width: 100%;
+    width: 500px;
+    min-width: 500px;
+    max-width: none;
     height: auto;
-    min-height: 125px;
+    min-height: 0;
 }
 
 .staff-row {
@@ -709,7 +710,7 @@ button:disabled {
 .treble-clef {
     fill: var(--color-text);
     font-family: "Noto Music", "Segoe UI Symbol", serif;
-    font-size: 70px;
+    font-size: clamp(40px, 30vw, 70px);
 }
 
 .staff-note {
