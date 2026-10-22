@@ -73,7 +73,10 @@
                             <line x1="20" y1="81" x2="660" y2="81"></line>
                             <line x1="20" y1="93" x2="660" y2="93"></line>
                         </g>
-                        <text x="30" y="95" class="treble-clef">𝄞</text>
+                        <g class="treble-clef-shape">
+                            <path d="M17 106C17 113 27 113 27 102L26.5 25C26 16 38 17 36 32C34 46 13 56 10 77C8 92 20 100 30 97C42 94 44 81 37 74C32 66 19 69 18 80C17 89 29 90 30 82C30 76 22 75 22 81"/>
+                            <circle cx="17" cy="106" r="2.7"/>
+                        </g>
                         <g id="staffKeySignature"></g>
                         <g id="staffLedgerLines"></g>
                         <g id="staffNotes"></g>
@@ -199,18 +202,8 @@
 
                 <div class="actions">
                     <button class="secondary" id="undoButton">Undo Last Note</button>
-                    <button class="red wavy nextButton">Go Back</button>
-                </div>
-            </section>
-
-            <section class="panel hidden" id="results">
-                <h2 id="resultTitle">Results</h2>
-                <p id="score"></p>
-                <div id="resultDetails"></div>
-
-                <div class="actions">
-                    <button class="secondary" id="retryButton">Try Again</button>
-                    <button class="primary text-opposed-color" id="nextscaleButton">Next Scale</button>
+                    <button class="secondary hidden" id="retryButton">Try Again</button>
+                    <button class="primary text-opposed-color hidden" id="nextscaleButton">Next Scale</button>
                     <button class="red wavy nextButton">Go Back</button>
                 </div>
             </section>

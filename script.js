@@ -149,8 +149,41 @@
     // Fields in each key's data that are not scale types.
     const NON_SCALE_FIELDS = ["key-signature", "types"];
 
-    // Vertical text offset per accidental.
-    const ACCIDENTAL_Y_OFFSET = { sharp: 6, natural: 6, flat: 4 };
+    // Accidentals are drawn as paths, not font glyphs, so they look the same on
+    // every device. Each shape is centered on the staff position it applies to.
+    const ACCIDENTAL_SHAPES = {
+        sharp: [
+            { d: "M-3.2 -12V11M3.2 -10V13", width: 1.3 },
+            { d: "M-6 -2.2L6 -5.4M-6 5.6L6 2.4", width: 2.6 }
+        ],
+        flat: [
+            { d: "M-3 -16V5M-3 5C7 0.5 7.5 -8.5 -3 -4", width: 1.5 }
+        ],
+        natural: [
+            { d: "M-3 -11V4M3 -4V11", width: 1.3 },
+            { d: "M-3 -1L3 -3.5M-3 4L3 1.5", width: 2.4 }
+        ]
+    };
+
+    const ACCIDENTAL_WIDTH = 12;
+
+    function drawAccidental(parent, accidental, x, y) {
+        const shapes = ACCIDENTAL_SHAPES[accidental];
+        if (!shapes) return;
+
+        const group = document.createElementNS(SVG_NS, "g");
+        group.setAttribute("class", "staff-accidental-shape");
+        group.setAttribute("transform", `translate(${x} ${y})`);
+
+        shapes.forEach(({ d, width }) => {
+            const path = document.createElementNS(SVG_NS, "path");
+            path.setAttribute("d", d);
+            path.setAttribute("stroke-width", width);
+            group.append(path);
+        });
+
+        parent.append(group);
+    }
 
     const BASE_SCALE_TYPE = "major";
 
@@ -398,6 +431,19 @@
             let typeBufferTimeout;
 
             wrapper.append(trigger, menu);
+            
+            // The real select is hidden and replaced by this control. Keep it
+            // from ever receiving focus or label clicks, which is what opens
+            // the native iOS picker.
+            select.tabIndex = -1;
+            select.setAttribute("aria-hidden", "true");
+            select.setAttribute("inert", "");
+
+            // Stop clicks inside the dropdown from being passed on to the
+            // select through the surrounding <label>.
+            wrapper.addEventListener("click", event => {
+                event.preventDefault();
+            });
 
             function getOptions() {
                 return [...select.options].filter(option => !option.disabled);
@@ -1046,25 +1092,6 @@
         });
     }
 
-    function setSettingsBranch(node, visible) {
-        const checkbox = node.querySelector(
-            ":scope > .scale-settings-row input[type='checkbox']"
-        );
-
-        if (checkbox) {
-            if (visible) hiddenScales.delete(checkbox.dataset.settingId);
-            else hiddenScales.add(checkbox.dataset.settingId);
-        }
-
-        node.querySelectorAll("input[type='checkbox']").forEach(child => {
-            if (visible) hiddenScales.delete(child.dataset.settingId);
-            else hiddenScales.add(child.dataset.settingId);
-
-            child.checked = visible;
-            child.indeterminate = false;
-        });
-    }
-
     function openSettings() {
         document.documentElement.classList.add("settings-open");
 
@@ -1104,11 +1131,15 @@
 
         return map;
     }
+    
 
     // Staff drawing and scrolling
     function drawStaff() {
         const svg = $("scaleStaff");
         if (!svg) return;
+
+        // Right edge of the drawn clef, so the key signature can start after it.
+        const CLEF_RIGHT = 47;
 
         const staffLines = svg.querySelector(".staff-lines");
         const notesGroup = $("staffNotes");
@@ -1129,10 +1160,12 @@
         const stepY = 6;
         const bottomY = 93;
 
+        const clefRight = CLEF_RIGHT;
+
         const signature = showKeySignature ? getKeySignature(currentKey) : [];
         const signatureMap = showKeySignature ? getKeySignatureMap(currentKey) : {};
-        const signatureStartX = 75;
-        const signatureSpacing = 11;
+        const signatureStartX = clefRight + 10 + ACCIDENTAL_WIDTH / 2;
+        const signatureSpacing = 13;
 
         signature.forEach((note, index) => {
             const [letter, accidental] = note.split("-");
@@ -1140,17 +1173,19 @@
 
             if (y === undefined) return;
 
-            const text = document.createElementNS(NS, "text");
-            text.setAttribute("x", signatureStartX + index * signatureSpacing);
-            text.setAttribute("y", y + ACCIDENTAL_Y_OFFSET[accidental]);
-            text.setAttribute("class", "staff-accidental");
-            text.textContent = accidentalSymbols[accidental];
-            signatureGroup.append(text);
+            drawAccidental(
+                signatureGroup,
+                accidental,
+                signatureStartX + index * signatureSpacing,
+                y
+            );
         });
 
         const signatureEndX = signature.length
-            ? signatureStartX + (signature.length - 1) * signatureSpacing + 8
-            : 0;
+            ? signatureStartX +
+                (signature.length - 1) * signatureSpacing +
+                ACCIDENTAL_WIDTH / 2
+            : clefRight;
 
         const startX = Math.max(100, signatureEndX + 34);
 
@@ -1221,21 +1256,15 @@
             const [letter, accidental = ""] = note.split("-");
             const effectiveAccidental = accidental || "natural";
             const signatureAccidental = signatureMap[letter] || "natural";
+            const wrong = finished && !notesMatch(note, expected[index]);
 
             const needsAccidental = showKeySignature
                 ? effectiveAccidental !== signatureAccidental
                 : Boolean(accidental);
 
-            if (needsAccidental && accidentalSymbols[effectiveAccidental]) {
-                const accidentalText = document.createElementNS(NS, "text");
-                accidentalText.setAttribute("x", x - 17);
-                accidentalText.setAttribute(
-                    "y",
-                    y + ACCIDENTAL_Y_OFFSET[effectiveAccidental]
-                );
-                accidentalText.setAttribute("class", "staff-accidental");
-                accidentalText.textContent = accidentalSymbols[effectiveAccidental];
-                notesGroup.append(accidentalText);
+            if (needsAccidental) {
+                drawAccidental(notesGroup, effectiveAccidental, x - 17, y);
+                if (wrong) notesGroup.lastElementChild?.classList.add("wrong");
             }
 
             const notehead = document.createElementNS(NS, "ellipse");
@@ -1246,7 +1275,11 @@
             notehead.setAttribute("transform", `rotate(-20 ${x} ${y})`);
             notehead.setAttribute(
                 "class",
-                index === answers.length - 1 ? "staff-note current" : "staff-note"
+                wrong
+                    ? "staff-note wrong"
+                    : !finished && index === answers.length - 1
+                        ? "staff-note current"
+                        : "staff-note"
             );
             notesGroup.append(notehead);
 
@@ -1260,6 +1293,20 @@
             stem.setAttribute("y2", y + (stemDown ? 30 : -30));
             stem.setAttribute("class", "staff-stem");
             notesGroup.append(stem);
+
+            // A larger invisible target so a wrong note is easy to tap.
+            if (wrong) {
+                const hit = document.createElementNS(NS, "circle");
+                hit.setAttribute("cx", x);
+                hit.setAttribute("cy", y);
+                hit.setAttribute("r", 14);
+                hit.setAttribute("class", "staff-note-hit");
+                hit.addEventListener("click", () => {
+                    answers.length = index;
+                    renderQuestion();
+                });
+                notesGroup.append(hit);
+            }
         });
 
         requestAnimationFrame(() => {
@@ -1794,6 +1841,7 @@
 
     function setValve(index, pressed) {
         if (!valveElements[index] || valveStates[index] === pressed) return;
+        if (finished && pressed) return;
 
         valveStates[index] = pressed;
         valveElements[index].classList.toggle("pressed", pressed);
@@ -1873,13 +1921,7 @@
     }
 
     function applyInputMode() {
-        if (noteChoices) {
-            noteChoices.classList.toggle("hidden", useValveInput);
-        }
-
-        if (valvePicker) {
-            valvePicker.classList.toggle("hidden", !useValveInput);
-        }
+        updateCompletionUi();
 
         if (!useValveInput) releaseAllValves();
 
@@ -1978,7 +2020,6 @@
     function startTest(randomize = false) {
         try {
             if (randomize) {
-                $("nextscaleButton").innerHTML = "Continue"
                 chooseRandomScale();
             }
 
@@ -2042,19 +2083,50 @@
         }
     }
 
-    function renderQuestion() {
-        if (answers.length >= expected.length) {
-            gradeTest();
-            return;
+    // Everything that depends on whether the scale is complete.
+    // Everything that depends on whether the scale is complete.
+    function updateCompletionUi() {
+        $("retryButton")?.classList.toggle("hidden", !finished);
+        $("nextscaleButton")?.classList.toggle("hidden", !finished);
+
+        // The input mode decides which control is shown...
+        noteChoices?.classList.toggle("hidden", useValveInput);
+        valvePicker?.classList.toggle("hidden", !useValveInput);
+
+        // ...and a finished scale disables it instead of hiding it.
+        if (finished && !useValveInput && noteChoices && !noteChoices.children.length) {
+            buildNoteButtons();
         }
+
+        noteChoices?.classList.toggle("is-disabled", finished);
+        noteChoices?.querySelectorAll("button").forEach(button => {
+            button.disabled = finished;
+        });
+
+        valvePicker?.classList.toggle("is-disabled", finished);
+
+        if (finished) {
+            releaseAllValves();
+
+            if (placeNoteButton) placeNoteButton.disabled = true;
+        }
+    }
+
+    function renderQuestion() {
+        finished = answers.length >= expected.length;
 
         const noteNumber = $("noteNumber");
         const progressBar = $("progressBar");
         const undoButton = $("undoButton");
 
         if (noteNumber) {
-            noteNumber.textContent =
-                "Note " + (answers.length + 1) + " of " + expected.length;
+            const hasWrong = answers.some((note, index) =>
+                !notesMatch(note, expected[index])
+            );
+
+            noteNumber.textContent = finished
+                ? (hasWrong ? "Tap a red note to go back to that position" : "Perfect scale!")
+                : "Note " + (answers.length + 1) + " of " + expected.length;
         }
 
         if (progressBar) {
@@ -2062,87 +2134,15 @@
                 (answers.length / expected.length * 100) + "%";
         }
 
-        refreshNoteInput();
+        updateCompletionUi();
+
+        if (!finished) refreshNoteInput();
 
         if (undoButton) {
             undoButton.disabled = answers.length === 0;
         }
 
         drawStaff();
-    }
-
-    function gradeTest() {
-        finished = true;
-        test?.classList.add("hidden");
-        results?.classList.remove("hidden");
-
-        const mistakes = [];
-
-        expected.forEach((note, index) => {
-            if (!notesMatch(answers[index], note)) {
-                mistakes.push({ index, expected: note, actual: answers[index] });
-            }
-        });
-
-        const correct = expected.length - mistakes.length;
-        const percentage = expected.length
-            ? Math.round(correct / expected.length * 100)
-            : 0;
-
-        const resultTitle = $("resultTitle");
-        const score = $("score");
-        const details = $("resultDetails");
-        const progressBar = $("progressBar");
-
-        if (resultTitle) {
-            resultTitle.textContent =
-                percentage === 100 ? "Perfect Scale!" : "Scale Complete";
-        }
-
-        if (score) {
-            score.textContent =
-                correct + " / " + expected.length + " correct (" + percentage + "%)";
-        }
-
-        if (details) {
-            details.replaceChildren();
-
-            const message = document.createElement("p");
-            message.className = mistakes.length ? "status bad" : "status good";
-            message.textContent = mistakes.length
-                ? mistakes.length + " note(s) need correction:"
-                : "Every note is correct. Great work!";
-            details.append(message);
-
-            const heading = document.createElement("div");
-            heading.className = "result-row muted";
-            heading.innerHTML = "<span>Your answer</span><span>Correct answer</span>";
-            details.append(heading);
-
-            expected.forEach((note, index) => {
-                const row = document.createElement("div");
-                row.className = "result-row";
-
-                const actual = document.createElement("span");
-                actual.textContent =
-                    (index + 1) + ". " +
-                    (answers[index] ? displayNote(answers[index]) : "No answer");
-
-                const expectedSpan = document.createElement("span");
-                expectedSpan.textContent =
-                    (index + 1) + ". " + displayNote(note);
-                expectedSpan.className = "expected";
-
-                actual.className = notesMatch(answers[index], note)
-                    ? "expected"
-                    : "incorrect";
-
-                row.append(actual, expectedSpan);
-                details.append(row);
-            });
-        }
-
-        if (progressBar) progressBar.style.width = "100%";
     }
 
     function returnToSetup() {
@@ -2267,7 +2267,7 @@
     });
 
     $("undoButton")?.addEventListener("click", () => {
-        if (!finished && answers.length) {
+        if (answers.length) {
             answers.pop();
             renderQuestion();
         }

@@ -707,10 +707,16 @@ button:disabled {
     opacity: 0.55;
 }
 
-.treble-clef {
+.treble-clef-shape path {
+    fill: none;
+    stroke: var(--color-text);
+    stroke-width: 2.2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+
+.treble-clef-shape circle {
     fill: var(--color-text);
-    font-family: "Google Sans", sans-serif !important;
-    font-size: 70px;
 }
 
 .staff-note {
@@ -721,17 +727,48 @@ button:disabled {
     fill: var(--color-accent);
 }
 
-.staff-accidental {
-    fill: var(--color-text);
-    font-family: "Google Sans", sans-serif !important;
-    font-size: 1.2em;
-    font-weight: 400;
-    font-variation-settings: normal;
-    font-stretch: normal;
-    line-height: 1;
-    white-space: nowrap;
+/* Note input while the scale is complete */
+
+.note-grid.is-disabled,
+.valve-picker.is-disabled {
+    pointer-events: none;
 }
 
+.valve-picker.is-disabled {
+    opacity: 0.4;
+}
+
+/* Wrong notes after the scale is complete */
+
+.staff-note.wrong {
+    fill: var(--color-error);
+}
+
+.staff-note.wrong + .staff-stem {
+    stroke: var(--color-error);
+}
+
+.staff-accidental.wrong {
+    fill: var(--color-error);
+}
+
+.staff-accidental-shape.wrong path {
+    stroke: var(--color-error);
+}
+
+.staff-note-hit {
+    fill: transparent;
+    cursor: pointer;
+}
+
+.staff-accidental-shape path {
+    fill: none;
+    stroke: var(--color-text);
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+
+/*make it check if we are actually a phone or just a compressed browser so this only happens on phone*/
 @media (max-width: 480px) {
     .treble-clef {
         font-size: 40px;
