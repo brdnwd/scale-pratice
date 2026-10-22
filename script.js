@@ -108,7 +108,6 @@
             $("valveInputSettings")?.remove();
             $("valveInputToggle").parentElement.parentElement.remove();
             valvePicker?.remove();
-            noteChoices?.classList.remove("show-fingerings");
         }
     } catch (e) {
         // Ignore
@@ -1697,9 +1696,7 @@ const ACCIDENTAL_WIDTH = 9;
 
             button.append(label);
 
-            if (!isMobile) {
-                button.append(createFingeringSvg());
-            }
+            button.append(createFingeringSvg());
 
             button.addEventListener("click", () => {
                 if (finished) return;
@@ -1712,7 +1709,7 @@ const ACCIDENTAL_WIDTH = 9;
     }
 
     function updateFingerings() {
-        if (isMobile || !noteChoices) return;
+        if (!noteChoices) return;
 
         noteChoices.classList.toggle("show-fingerings", showFingerings);
 
