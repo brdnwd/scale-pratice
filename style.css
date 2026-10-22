@@ -664,18 +664,42 @@ button:disabled {
    11. Staff notation
    ========================================================= */
 
-.staff-wrapper {
-    display: flex;
-    flex-direction: column;
+.staff-container {
     width: 100%;
+    min-width: 0;
     margin: 12px 0 20px;
-    overflow-x: auto;
-    overflow-y: hidden;
+    overflow: hidden;
     background: var(--color-background-staff);
     border: 1px solid var(--color-border);
     border-radius: 8px;
+}
+
+.staff-container > .progress {
+    width: 100%;
+    height: 6px;
+    overflow: hidden;
+    background: var(--color-background-progress);
+}
+
+.staff-wrapper {
+    width: 100%;
+    min-width: 0;
+    margin: 0;
+    overflow: hidden;
+    background: transparent;
+    border: none;
+    border-radius: 0;
+}
+
+.staff-scroll {
+    width: 100%;
+    min-width: 0;
+    overflow-x: auto;
+    overflow-y: hidden;
     scrollbar-width: thin;
     scrollbar-color: var(--color-scrollbar-thumb) var(--color-scrollbar-track);
+    overscroll-behavior-x: contain;
+    -webkit-overflow-scrolling: touch;
 }
 
 #scaleStaff {
