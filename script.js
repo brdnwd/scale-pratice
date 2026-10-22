@@ -144,7 +144,6 @@
 
     const naturalNotes = ["c", "d", "e", "f", "g", "a", "b"];
     const accidentalNotes = ["natural", "sharp", "flat"];
-    const accidentalSymbols = { sharp: "♯", flat: "♭", natural: "♮" };
 
     // Fields in each key's data that are not scale types.
     const NON_SCALE_FIELDS = ["key-signature", "types"];
@@ -153,19 +152,19 @@
     // every device. Each shape is centered on the staff position it applies to.
     const ACCIDENTAL_SHAPES = {
         sharp: [
-            { d: "M-3.2 -12V11M3.2 -10V13", width: 1.3 },
-            { d: "M-6 -2.2L6 -5.4M-6 5.6L6 2.4", width: 2.6 }
+            { d: "M-2.2 -8.5V7.8M2.2 -7V9.5", width: 1.3 },
+            { d: "M-4.2 -1.5L4.2 -3.8M-4.2 4.3L4.2 2", width: 2.6 }
         ],
         flat: [
-            { d: "M-3 -16V5M-3 5C7 0.5 7.5 -8.5 -3 -4", width: 1.5 }
+            { d: "M-2.2 -11V3.5M-2.2 3.5C4.8 0.5 5.2 -5.8 -2.2 -2.5", width: 1.5 }
         ],
         natural: [
-            { d: "M-3 -11V4M3 -4V11", width: 1.3 },
-            { d: "M-3 -1L3 -3.5M-3 4L3 1.5", width: 2.4 }
+            { d: "M-2.2 -7.8V2.8M2.2 -2.8V7.8", width: 1.3 },
+            { d: "M-2.2 -0.8L2.2 -2.5M-2.2 2.8L2.2 1", width: 2.4 }
         ]
     };
 
-    const ACCIDENTAL_WIDTH = 12;
+const ACCIDENTAL_WIDTH = 9;
 
     function drawAccidental(parent, accidental, x, y) {
         const shapes = ACCIDENTAL_SHAPES[accidental];
@@ -1219,7 +1218,7 @@
             });
         });
 
-        const width = Math.max(680, startX + answers.length * noteSpacing + 35);
+        const width = Math.max(710, startX + answers.length * noteSpacing + 35);
 
         svg.setAttribute("viewBox", `0 0 ${width} 145`);
         svg.style.width = width + "px";
@@ -2084,7 +2083,6 @@
     }
 
     // Everything that depends on whether the scale is complete.
-    // Everything that depends on whether the scale is complete.
     function updateCompletionUi() {
         $("retryButton")?.classList.toggle("hidden", !finished);
         $("nextscaleButton")?.classList.toggle("hidden", !finished);
@@ -2112,8 +2110,36 @@
         }
     }
 
+    function confetti_hooray() {
+        var duration = 2000;
+        var animationEnd = Date.now() + duration;
+        var defaults = {startVelocity: 30, spread: 360, ticks: 60, zIndex: 999};
+
+        function randomInRange(min, max) {
+            return Math.random() * (max - min) + min;
+        }
+
+        var interval = setInterval(function() {
+        var timeLeft = animationEnd - Date.now();
+
+        if (timeLeft <= 0) {
+            return clearInterval(interval);
+        }
+
+        var particleCount = 50 * (timeLeft / duration);
+            // since particles fall down, start a bit higher than random
+            confetti({ ...defaults, particleCount, origin: { x: randomInRange(0.1, 0.3), y: Math.random() - 0.2 } });
+            confetti({ ...defaults, particleCount, origin: { x: randomInRange(0.7, 0.9), y: Math.random() - 0.2 } });
+        }, 250);
+    }
+
     function renderQuestion() {
+        const wasFinished = finished;
         finished = answers.length >= expected.length;
+
+        const isPerfect = finished && answers.every((note, index) =>
+            notesMatch(note, expected[index])
+        );
 
         const noteNumber = $("noteNumber");
         const progressBar = $("progressBar");
@@ -2143,6 +2169,10 @@
         }
 
         drawStaff();
+
+        if (finished && !wasFinished && isPerfect) {
+            confetti_hooray();
+        }
     }
 
     function returnToSetup() {
