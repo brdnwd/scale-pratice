@@ -127,7 +127,7 @@
     let customDropdowns = null;
     let savedDirection = null;
     let showFingerings = true;
-    let useValveInput = isMobile;
+    let useValveInput = !isMobile;
     let expectedMidis = [];
     let showKeySignature = true;
     let randomScaleMode = false;
