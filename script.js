@@ -107,7 +107,8 @@
             $("fingeringSettings")?.remove();
             $("valveInputSettings")?.remove();
             $("valveInputToggle").parentElement.parentElement.remove();
-            valvePicker?.remove();
+            $("shortcutHints").remove();
+            placeNoteButton?.remove();
         }
     } catch (e) {
         // Ignore
@@ -125,7 +126,7 @@
     let customDropdowns = null;
     let savedDirection = null;
     let showFingerings = true;
-    let useValveInput = false;
+    let useValveInput = isMobile;
     let expectedMidis = [];
     let showKeySignature = true;
     let randomScaleMode = false;
@@ -301,10 +302,10 @@ const ACCIDENTAL_WIDTH = 9;
         }
 
         try {
-            useValveInput = !isMobile &&
+            useValveInput = isMobile ||
                 localStorage.getItem(VALVE_INPUT_KEY) === "true";
         } catch (error) {
-            useValveInput = false;
+            useValveInput = isMobile;
         }
 
         if (valveInputToggle) {
@@ -1777,6 +1778,7 @@ const ACCIDENTAL_WIDTH = 9;
     });
 
     const valveStates = [false, false, false];
+    let valvePickerInitialized = false;
 
     function isPickerActive() {
         return useValveInput &&
@@ -1797,6 +1799,7 @@ const ACCIDENTAL_WIDTH = 9;
         return (prefersFlats ? FLAT_NAMES : SHARP_NAMES)[midi % 12];
     }
 
+
     function resolvePickedNote() {
         const index = answers.length;
         const targetMidi = expectedMidis[index];
@@ -1813,14 +1816,19 @@ const ACCIDENTAL_WIDTH = 9;
 
         const expectedPitchClass =
             ((noteSemitone(expected[index]) % 12) + 12) % 12;
-        const preview = spellMidi(midi);
+
+        const matchesExpected = midi % 12 === expectedPitchClass;
+        const preview = matchesExpected
+            ? expected[index]
+            : spellMidi(midi);
 
         return {
             midi,
             preview,
-            note: midi % 12 === expectedPitchClass ? expected[index] : preview
+            note: matchesExpected ? expected[index] : preview
         };
     }
+
 
     function updatePicker() {
         if (!useValveInput) return;
@@ -1849,6 +1857,10 @@ const ACCIDENTAL_WIDTH = 9;
         valveStates.forEach((_, index) => setValve(index, false));
     }
 
+    function toggleValve(index) {
+        setValve(index, !valveStates[index]);
+    }
+
     function placePickedNote() {
         if (!isPickerActive()) return;
 
@@ -1864,7 +1876,10 @@ const ACCIDENTAL_WIDTH = 9;
         const noteLetter = $("noteLetter");
 
         if (useValveInput) {
-            if (noteInstruction) {
+            if (noteInstruction && isMobile) {
+                noteInstruction.innerHTML =
+                    "Tap the valves to press them.<br>Swipe down to choose the note.";
+            } else if (noteInstruction) {
                 noteInstruction.innerHTML = `
                     Press the valves down with
                     <span class="keyboard-keys" aria-label="Arrow keys">
@@ -1883,11 +1898,6 @@ const ACCIDENTAL_WIDTH = 9;
                     </span>
                     <br>
                     Press
-                    <svg class="key-icon key-enter" viewBox="0 0 40 24" aria-label="Enter">
-                        <rect x="1" y="1" width="38" height="22" rx="4" />
-                        <path d="M9 7v5h19M23 9l5 3-5 3" />
-                    </svg>
-                    or
                     <svg class="key-icon key-space" viewBox="0 0 48 24" aria-label="Spacebar">
                         <rect x="1" y="1" width="46" height="22" rx="4" />
                         <path d="M13 16h22" />
@@ -1941,6 +1951,99 @@ const ACCIDENTAL_WIDTH = 9;
     }
 
     function initValvePicker() {
+        // Never register the picker's listeners twice.
+        if (valvePickerInitialized) return;
+        valvePickerInitialized = true;
+
+        // Keep taps on the valves from scrolling, zooming, selecting text,
+        // or opening the long-press menu.
+        if (trumpetValves) {
+            trumpetValves.style.touchAction = "none";
+            trumpetValves.style.userSelect = "none";
+            trumpetValves.style.webkitUserSelect = "none";
+            trumpetValves.style.webkitTouchCallout = "none";
+            trumpetValves.style.webkitTapHighlightColor = "transparent";
+
+            trumpetValves.addEventListener("contextmenu", event => {
+                event.preventDefault();
+            });
+        }
+
+        // Touch gestures on the valve area:
+        //   tap a valve        -> press it / release it
+        //   swipe down         -> choose the note
+        // A valve is toggled when the finger lifts, so a swipe that starts on
+        // a valve doesn't also toggle it.
+        const SWIPE_DISTANCE = 40; // px of downward travel to count as a swipe
+        const TAP_SLOP = 12;       // px of travel still counted as a tap
+        const gestures = new Map();
+
+        if (valvePicker) {
+            valvePicker.style.touchAction = "none";
+            valvePicker.style.userSelect = "none";
+            valvePicker.style.webkitUserSelect = "none";
+        }
+
+        const gestureTarget = valvePicker || trumpetValves;
+
+        gestureTarget?.addEventListener("pointerdown", event => {
+            if (event.pointerType === "mouse" && event.button !== 0) return;
+            event.preventDefault();
+
+            try {
+                gestureTarget.setPointerCapture(event.pointerId);
+            } catch (error) {
+                // Pointer capture isn't essential.
+            }
+
+            gestures.set(event.pointerId, {
+                startX: event.clientX,
+                startY: event.clientY,
+                valveIndex: valveElements.findIndex(valve =>
+                    valve.contains(event.target)
+                ),
+                swiped: false
+            });
+        });
+
+        gestureTarget?.addEventListener("pointermove", event => {
+            const gesture = gestures.get(event.pointerId);
+
+            if (!gesture || gesture.swiped) return;
+
+            // A mouse only counts as dragging while its button is held down.
+            if (event.pointerType === "mouse" && !(event.buttons & 1)) {
+                gestures.delete(event.pointerId);
+                return;
+            }
+
+            const dx = event.clientX - gesture.startX;
+            const dy = event.clientY - gesture.startY;
+
+            if (dy >= SWIPE_DISTANCE && dy > Math.abs(dx) * 1.5) {
+                gesture.swiped = true;
+                placePickedNote();
+            }
+        });
+
+        gestureTarget?.addEventListener("pointerup", event => {
+            const gesture = gestures.get(event.pointerId);
+            gestures.delete(event.pointerId);
+
+            if (!gesture || gesture.swiped || gesture.valveIndex === -1) return;
+
+            const moved = Math.hypot(
+                event.clientX - gesture.startX,
+                event.clientY - gesture.startY
+            );
+
+            if (moved <= TAP_SLOP) toggleValve(gesture.valveIndex);
+        });
+
+        gestureTarget?.addEventListener("pointercancel", event => {
+            gestures.delete(event.pointerId);
+        });
+
         document.addEventListener("keydown", event => {
             if (!isPickerActive()) return;
             if (event.target.closest?.("input, textarea, select, [contenteditable=true]")) {
@@ -1956,9 +2059,7 @@ const ACCIDENTAL_WIDTH = 9;
             }
 
             const isPlaceKey =
-                event.code === "Space" ||
-                (event.key === "Enter" &&
-                    !event.target.closest?.("button, a, .valve"));
+                event.code === "Space";
 
             if (isPlaceKey) {
                 event.preventDefault();
@@ -2178,6 +2279,56 @@ const ACCIDENTAL_WIDTH = 9;
         setup?.classList.remove("hidden");
         updateBackButton();
     }
+
+
+    function handleKeyboardShortcuts(event) {
+        if (
+            event.target.closest?.(
+                'input, textarea, select, [contenteditable="true"]'
+            )
+        ) {
+            return;
+        }
+
+        if (
+            settingsOverlay &&
+            !settingsOverlay.classList.contains("hidden")
+        ) {
+            return;
+        }
+
+        const key = event.key.toLowerCase();
+
+        // Backspace: prevent browser navigation and undo the last note.
+        if (event.key === "Backspace") {
+            event.preventDefault();
+
+            if (answers.length > 0 && test && !test.classList.contains("hidden")) {
+                answers.pop();
+                renderQuestion();
+            }
+            return;
+        }
+
+        // R: retry the current scale.
+        if (key === "r" && test && !test.classList.contains("hidden")) {
+            event.preventDefault();
+            startTest();
+            return;
+        }
+
+         // Enter: advance only after the current scale is finished.
+        if (
+            event.key === "Enter" &&
+            finished &&
+            test &&
+            !test.classList.contains("hidden")
+        ) {
+            event.preventDefault();
+            nextScale();
+        }
+    }
+
 
     function nextScale() {
         try {
@@ -2418,6 +2569,8 @@ const ACCIDENTAL_WIDTH = 9;
             console.error("Scale data loading failed:", error);
         }
     }
+
+    document.addEventListener("keydown", handleKeyboardShortcuts);
 
     if (hasScaleBuilder) {
         await loadData();
