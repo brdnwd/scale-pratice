@@ -1552,6 +1552,7 @@ button:disabled {
 .trumpet-valves {
     position: absolute;
     inset: 0;
+    z-index: 0;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -1559,8 +1560,56 @@ button:disabled {
     max-width: none;
 }
 
+/* Swipe strip: touch devices only. Desktop uses the Place Note button. */
+.swipe-zone {
+    display: none;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    z-index: 1;
+    opacity: 0.1;
+    width: 100%;
+    max-width: 300px;
+    padding: 18px 12px;
+    color: var(--color-text-secondary);
+    background: var(--color-background-chip);
+    border: 1px dashed var(--color-border-input);
+    border-radius: 10px;
+    font-size: 14px;
+    touch-action: none;
+    user-select: none;
+    -webkit-user-select: none;
+}
+
+.swipe-hint {
+    transition: opacity 0.3s ease, visibility 0s linear 0s;
+}
+
+.swipe-hint.is-dismissed {
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s ease, visibility 0s linear 0.3s;
+}
+
+.swipe-chevrons {
+    width: 22px;
+    height: 22px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+
+@media (max-width: 768px), (hover: none) and (pointer: coarse) {
+    .swipe-zone {
+        display: flex;
+    }
+}
+
 #trumpetValves {
     position: absolute;
+    touch-action: manipulation;
     bottom: 0;
     left: 50%;
     display: block;

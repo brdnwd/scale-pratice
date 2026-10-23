@@ -92,6 +92,7 @@
         ? [...trumpetValves.querySelectorAll(".valve")]
         : [];
     const placeNoteButton = $("placeNoteButton");
+    const swipeZone = $("swipeZone");
 
     const settingsButton = $("settingsButton");
     const settingsOverlay = $("settingsOverlay");
@@ -1878,7 +1879,7 @@ const ACCIDENTAL_WIDTH = 9;
         if (useValveInput) {
             if (noteInstruction && isMobile) {
                 noteInstruction.innerHTML =
-                    "Tap the valves to press them.<br>Swipe down to choose the note.";
+                    "Tap the valves to press them.";
             } else if (noteInstruction) {
                 noteInstruction.innerHTML = `
                     Press the valves down with
@@ -1955,10 +1956,14 @@ const ACCIDENTAL_WIDTH = 9;
         if (valvePickerInitialized) return;
         valvePickerInitialized = true;
 
-        // Keep taps on the valves from scrolling, zooming, selecting text,
-        // or opening the long-press menu.
+                // Vertical drags scroll the page, so only the swipe strip (and a
+        // desktop mouse) captures them. Taps on the valves still toggle them.
+        const SWIPE_DISTANCE = 40; // px of downward travel to choose the note
+        const TAP_SLOP = 12;       // px of travel still counted as a tap
+        const gestures = new Map();
+
         if (trumpetValves) {
-            trumpetValves.style.touchAction = "none";
+            trumpetValves.style.touchAction = "manipulation";
             trumpetValves.style.userSelect = "none";
             trumpetValves.style.webkitUserSelect = "none";
             trumpetValves.style.webkitTouchCallout = "none";
@@ -1969,47 +1974,57 @@ const ACCIDENTAL_WIDTH = 9;
             });
         }
 
-        // Touch gestures on the valve area:
-        //   tap a valve        -> press it / release it
-        //   swipe down         -> choose the note
-        // A valve is toggled when the finger lifts, so a swipe that starts on
-        // a valve doesn't also toggle it.
-        const SWIPE_DISTANCE = 40; // px of downward travel to count as a swipe
-        const TAP_SLOP = 12;       // px of travel still counted as a tap
-        const gestures = new Map();
-
-        if (valvePicker) {
-            valvePicker.style.touchAction = "none";
-            valvePicker.style.userSelect = "none";
-            valvePicker.style.webkitUserSelect = "none";
+        if (swipeZone) {
+            swipeZone.style.touchAction = "none";
+            swipeZone.style.userSelect = "none";
+            swipeZone.style.webkitUserSelect = "none";
+            swipeZone.style.webkitTouchCallout = "none";
         }
 
         const gestureTarget = valvePicker || trumpetValves;
 
+        if (gestureTarget) {
+            gestureTarget.style.userSelect = "none";
+            gestureTarget.style.webkitUserSelect = "none";
+        }
+
         gestureTarget?.addEventListener("pointerdown", event => {
             if (event.pointerType === "mouse" && event.button !== 0) return;
-            event.preventDefault();
 
-            try {
-                gestureTarget.setPointerCapture(event.pointerId);
-            } catch (error) {
-                // Pointer capture isn't essential.
+            const valveIndex = valveElements.findIndex(valve =>
+                valve.contains(event.target)
+            );
+
+            // Touch and pen can swipe only from the strip. A mouse can drag
+            // from anywhere in the picker.
+            const canSwipe =
+                event.pointerType === "mouse" ||
+                Boolean(swipeZone?.contains(event.target));
+
+            if (valveIndex === -1 && !canSwipe) return;
+
+            if (canSwipe) {
+                event.preventDefault();
+
+                try {
+                    gestureTarget.setPointerCapture(event.pointerId);
+                } catch (error) {
+                    // Pointer capture isn't essential.
+                }
             }
 
             gestures.set(event.pointerId, {
                 startX: event.clientX,
                 startY: event.clientY,
-                valveIndex: valveElements.findIndex(valve =>
-                    valve.contains(event.target)
-                ),
+                valveIndex,
+                canSwipe,
                 swiped: false
             });
         });
 
         gestureTarget?.addEventListener("pointermove", event => {
             const gesture = gestures.get(event.pointerId);
-
-            if (!gesture || gesture.swiped) return;
+            if (!gesture || gesture.swiped || !gesture.canSwipe) return;
 
             // A mouse only counts as dragging while its button is held down.
             if (event.pointerType === "mouse" && !(event.buttons & 1)) {
@@ -2040,6 +2055,8 @@ const ACCIDENTAL_WIDTH = 9;
             if (moved <= TAP_SLOP) toggleValve(gesture.valveIndex);
         });
 
+        // The browser cancels the pointer when it starts scrolling, so a scroll
+        // that began on a valve never toggles it.
         gestureTarget?.addEventListener("pointercancel", event => {
             gestures.delete(event.pointerId);
         });
