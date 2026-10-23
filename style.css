@@ -1614,21 +1614,11 @@ button:disabled {
     left: 50%;
     display: block;
     width: min(100%, 760px);
-    height: auto;
     touch-action: none;
     user-select: none;
     -webkit-user-select: none;
-    transform: translate(-50%, -30px);
+    transform: translateX(-50%);
     overflow: visible;
-}
-
-@media (max-width: 726px) {
-    #trumpetValves {
-        width: 115%;
-        max-width: none;
-        bottom: 70px;
-        transform: translate(-50%, -30px);
-    }
 }
 
 .valve {
@@ -1689,7 +1679,7 @@ button:disabled {
 
 #test>.valve-picker:not(.hidden) {
     flex: 1 1 auto;
-    min-height: 200px;
+    min-height: 280px;
     margin: 0 -22px;
     overflow: hidden;
 }
@@ -2127,30 +2117,4 @@ button:disabled {
 
 #resetConfirmOverlay .danger:hover {
     background: #912018;
-}
-
-.shortcut-hint {
-    display: flex;
-    gap: 10px;
-    align-items:center;
-    justify-content: center;
-}
-
-.shortcut-hint span {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    line-height: 1;
-}
-
-.shortcut-hint .key-icon {
-    flex: 0 0 auto;
-    width: 22px;
-    height: 25px;
-}
-
-/* 40 x 24 artwork, so the same height needs a wider box. */
-.shortcut-hint .key-backspace,
-.shortcut-hint .key-enter {
-    width: 33px;
 }
