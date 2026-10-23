@@ -106,7 +106,7 @@
         if (isMobile) {
             $("fingeringSettings")?.remove();
             $("valveInputSettings")?.remove();
-            $("valveInputToggle").parentElement.parentElement.remove();
+            //$("valveInputToggle").parentElement.parentElement.remove();
             $("shortcutHints").remove();
             placeNoteButton?.remove();
         }
@@ -1937,7 +1937,7 @@ const ACCIDENTAL_WIDTH = 9;
     }
 
     function saveValveInputSetting() {
-        if (isMobile || !valveInputToggle) return;
+        if (!valveInputToggle) return;
 
         useValveInput = valveInputToggle.checked;
 
